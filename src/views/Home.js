@@ -7,7 +7,7 @@ import "../style/Slider.css";
 
 import { ProductCard } from "../components/Card";
 
-import { Box, Container, Link, Typography, Button, Grid, Card, CardActionArea, CardContent } from "@mui/material";
+import { Box, Container, Link, Typography, Button, Grid } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import { apiUrl } from "../variable/Url";
 
