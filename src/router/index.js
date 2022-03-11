@@ -46,7 +46,7 @@ function Router() {
 
             <Route path="/search" element={<App render={<Search />} title="Cari Produk" />} />
             <Route path="/products" element={<App render={<Products />} title="Semua Produk" />} />
-            <Route path="/product/:product_id" element={<App render={<ProductDetail />} title="Detail Produk" />} />
+            <Route path="/product/:slug" element={<App render={<ProductDetail />} title="Detail Produk" />} />
 
             <Route path="/settings" element={<App render={<Settings />} title="Pengaturan" />} />
             <Route path="/settings/address" element={<App render={<SettingAddress />} title="Daftar Alamat" />} />

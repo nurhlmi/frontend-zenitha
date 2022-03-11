@@ -2,18 +2,19 @@ import React from "react";
 import { Box, Typography, Button, IconButton, Tooltip, Card, CardActionArea, CardContent, CardMedia } from "@mui/material";
 import { DeleteOutlineRounded } from "@mui/icons-material";
 import { Link as RouterLink } from "react-router-dom";
+import { NumberFormat } from "./Format";
 
 function ProductCard(props) {
    return (
       <Card sx={{ height: "100%" }}>
          <CardActionArea component={RouterLink} to={`/product/${props.slug}`} sx={{ height: "100%" }}>
-            <CardMedia component="img" height={{ xs: 150, sm: 200 }} image={`/assets/images/products/${props.image}`} alt={props.name} />
+            <CardMedia component="img" height={{ xs: 150, sm: 200 }} image={props.image} alt={props.name} />
             <CardContent>
                <Typography gutterBottom variant="body2" wrap="nowrap">
                   {props.name}
                </Typography>
                <Typography gutterBottom variant="subtitle2" component="div" fontWeight="bold">
-                  {props.discount !== null ? `Rp${props.discount_price}` : `Rp${props.price}`}
+                  {props.discount !== null ? NumberFormat(props.discount_price) : NumberFormat(props.price)}
                </Typography>
                {props.discount !== null && (
                   <React.Fragment>
@@ -23,7 +24,7 @@ function ProductCard(props) {
                         </Typography>
                      </Box>
                      <Typography variant="caption" color="text.secondary">
-                        <del>Rp{props.price}</del>
+                        <del>{NumberFormat(props.price)}</del>
                      </Typography>
                   </React.Fragment>
                )}

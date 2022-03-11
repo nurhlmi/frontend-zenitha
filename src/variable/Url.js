@@ -1,7 +1,5 @@
-// const baseUrl = ``;
-// const baseUrl = `http://localhost/kemenkop/itsupport/backend/public`;
-// const apiUrl = `${baseUrl}/api/v1`;
+const baseUrl = `http://localhost:8000`;
+const apiUrl = `${baseUrl}/api`;
 const title = ` | Zenitha`;
 
-// export { baseUrl, apiUrl, title };
-export { title };
+export { baseUrl, apiUrl, title };

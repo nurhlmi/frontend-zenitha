@@ -54,7 +54,7 @@ export default function CategoryDetail(props) {
    }, []);
    return (
       <Container sx={{ flex: 1 }}>
-         <Typography variant="subtitle1" color="text.secondary" py={3}>
+         <Typography color="text.secondary" py={3}>
             Menampilkan 5 produk untuk <b>"Busana"</b> (<b>1 - 5</b> of <b>5</b>)
          </Typography>
          <Grid container spacing={{ xs: 1, sm: 2 }}>

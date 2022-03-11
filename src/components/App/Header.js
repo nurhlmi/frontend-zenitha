@@ -19,6 +19,8 @@ import {
    Modal,
    InputBase,
    ListItemIcon,
+   Backdrop,
+   CircularProgress,
 } from "@mui/material";
 import {
    Logout,
@@ -34,8 +36,8 @@ import {
 
 import { apiUrl } from "../../variable/Url";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-// import { useRecoilState } from "recoil";
-// import { authentication } from "../../store/Authentication";
+import { useRecoilState } from "recoil";
+import { authentication, carts } from "../../store/Authentication";
 
 export default function Header(props) {
    const [anchorEl, setAnchorEl] = React.useState(null);
@@ -48,15 +50,12 @@ export default function Header(props) {
    };
 
    const navigate = useNavigate();
-   // eslint-disable-next-line no-unused-vars
-   // const [auth, setAuth] = useRecoilState(authentication);
-   // const token = localStorage.getItem("token");
-   // const name = localStorage.getItem("name");
-
+   const [auth, setAuth] = useRecoilState(authentication);
+   const [cart] = useRecoilState(carts);
+   const token = localStorage.getItem("token");
+   const name = localStorage.getItem("name");
    const avatar = localStorage.getItem("avatar");
-   const [login, setLogin] = React.useState(false);
    const [modal, setModal] = React.useState(false);
-   const [cart] = React.useState(1);
 
    const [category, setCategory] = React.useState([]);
    const getCategory = async () => {
@@ -88,6 +87,30 @@ export default function Header(props) {
    const handleSearch = (e) => {
       e.preventDefault();
       search !== undefined && search !== "" && navigate(`/search?q=${search}`);
+   };
+
+   const [backdrop, setBackdrop] = React.useState(false);
+   const handleLogout = async () => {
+      setBackdrop(true);
+      await axios
+         .delete(`${apiUrl}/auth/logout`, {
+            headers: {
+               Authorization: "Bearer " + token,
+            },
+         })
+         .then(() => {
+            setAuth({
+               auth: false,
+               user: null,
+            });
+            localStorage.clear();
+            setBackdrop(false);
+            navigate("/");
+         })
+         .catch((err) => {
+            console.log(err.response);
+            // let responseError = err.response.data.data;
+         });
    };
 
    return (
@@ -203,7 +226,7 @@ export default function Header(props) {
                            </Box>
                         </Box>
                         <Box sx={{ ml: 1 }}>
-                           {login ? (
+                           {auth.auth !== false ? (
                               <Stack direction="row" divider={<Divider orientation="vertical" flexItem />} spacing={1} alignItems="center">
                                  <Box>
                                     <Box sx={{ display: { xs: "none", sm: "inline" } }}>
@@ -215,7 +238,7 @@ export default function Header(props) {
                                     </Box>
                                     <Tooltip title="Keranjang">
                                        <IconButton component={RouterLink} to="/cart">
-                                          <Badge badgeContent={cart} color="error">
+                                          <Badge badgeContent={cart.total} color="error">
                                              <ShoppingCartOutlined fontSize="small" />
                                           </Badge>
                                        </IconButton>
@@ -230,10 +253,10 @@ export default function Header(props) {
                                  </Box>
                                  <Box>
                                     <Button onClick={handleClick} color="inherit" sx={{ display: "flex", alignItems: "center", p: 0.5 }}>
-                                       <Avatar src={avatar} alt="My Avatar" />
+                                       <Avatar>{avatar}</Avatar>
                                        <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center" }}>
                                           <Typography sx={{ ml: 1 }} variant="subtitle2" noWrap>
-                                             Nur Hilmi
+                                             {name}
                                           </Typography>
                                           <ArrowDropDownRounded />
                                        </Box>
@@ -274,9 +297,9 @@ export default function Header(props) {
                                        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
                                     >
                                        <MenuItem component={RouterLink} to="/settings">
-                                          <Avatar src={avatar} alt="My Avatar" />
+                                          <Avatar>{avatar}</Avatar>
                                           <Box>
-                                             <Typography noWrap>Nur Hilmi</Typography>
+                                             <Typography noWrap>{name}</Typography>
                                              <Typography variant="caption" noWrap>
                                                 nurhilmi.mail@gmail.com
                                              </Typography>
@@ -316,7 +339,7 @@ export default function Header(props) {
                                           Ganti Password
                                        </MenuItem>
                                        <Divider />
-                                       <MenuItem onClick={() => setLogin(false)}>
+                                       <MenuItem onClick={handleLogout}>
                                           <ListItemIcon sx={{ mr: 0 }}>
                                              <Logout fontSize="small" />
                                           </ListItemIcon>
@@ -342,6 +365,9 @@ export default function Header(props) {
                </Grid>
             </Toolbar>
          </AppBar>
+         <Backdrop sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }} open={backdrop}>
+            <CircularProgress color="inherit" />
+         </Backdrop>
       </React.Fragment>
    );
 }

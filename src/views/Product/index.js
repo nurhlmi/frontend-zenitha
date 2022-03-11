@@ -1,6 +1,7 @@
 import React from "react";
-import { Container, Typography, Grid } from "@mui/material";
-// import { Link as RouterLink } from "react-router-dom";
+import { Container, Typography, Breadcrumbs, Link, Grid } from "@mui/material";
+import { NavigateNext } from "@mui/icons-material";
+import { Link as RouterLink } from "react-router-dom";
 
 import { ProductCard } from "../../components/Card";
 
@@ -52,9 +53,12 @@ export default function Products(props) {
    }, []);
    return (
       <Container sx={{ flex: 1 }}>
-         <Typography variant="h6" py={3}>
-            Semua Produk
-         </Typography>
+         <Breadcrumbs separator={<NavigateNext fontSize="small" />} aria-label="breadcrumb" sx={{ py: 3 }}>
+            <Link underline="hover" color="inherit" component={RouterLink} to="/products">
+               Produk
+            </Link>
+            <Typography color="text.primary">Semua Kategori</Typography>
+         </Breadcrumbs>
          <Grid container spacing={{ xs: 1, sm: 2 }}>
             {products.map((value, index) => (
                <Grid item xs={6} sm={4} md={3} lg={2.4} key={index}>

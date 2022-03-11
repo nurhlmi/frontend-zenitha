@@ -237,9 +237,7 @@ export default function Home(props) {
                      )}
                   </>
                ) : (
-                  <Typography textAlign="center" pt={2}>
-                     Belum ada produk terbaru
-                  </Typography>
+                  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>Belum ada produk terbaru</Box>
                )}
             </Box>
          </Container>

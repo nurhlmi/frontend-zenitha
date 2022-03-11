@@ -1,11 +1,24 @@
 import React from "react";
-import { Box, FormControl, TextField, Typography, Link, InputAdornment, IconButton, OutlinedInput } from "@mui/material";
+import axios from "axios";
+import { Box, FormControl, TextField, Typography, Link, InputAdornment, IconButton, OutlinedInput, Collapse, Alert } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { Link as RouterLink } from "react-router-dom";
+
+import { useRecoilState } from "recoil";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { authentication, carts } from "../../store/Authentication";
+import { Param } from "../../components/Param";
+import { apiUrl } from "../../variable/Url";
 
 export default function Category(props) {
+   const redirect = Param("redirect");
+   const navigate = useNavigate("redirect");
+   // eslint-disable-next-line no-unused-vars
+   const [auth, setAuth] = useRecoilState(authentication);
+   const [cart, setCart] = useRecoilState(carts);
    const [data, setData] = React.useState();
+   const [alert, setAlert] = React.useState(false);
+   const [error, setError] = React.useState(false);
    const [loading, setLoading] = React.useState(false);
    const handleChange = (e) => {
       setData({
@@ -13,9 +26,53 @@ export default function Category(props) {
          [e.target.name]: e.target.value,
       });
    };
-   const handleSubmit = (e) => {
+   const handleSubmit = async (e) => {
       e.preventDefault();
+      setAlert(false);
       setLoading(true);
+      let formData = new FormData();
+      formData.append("email", data.email);
+      formData.append("password", data.password);
+      formData.append("type", "customer");
+      await axios
+         .post(`${apiUrl}/auth/login`, formData)
+         .then((res) => {
+            // console.log(res.data.data);
+            let data = res.data.data;
+            localStorage.setItem("token", data.access_token);
+            localStorage.setItem("user_id", data.user.id);
+            localStorage.setItem("name", data.user.name);
+            localStorage.setItem("role", data.user.role);
+            localStorage.setItem("avatar", data.user.name.substr(0, 1).toLocaleUpperCase());
+            axios
+               .get(`${apiUrl}/carts`, {
+                  headers: {
+                     Authorization: "Bearer " + data.access_token,
+                  },
+               })
+               .then((res) => {
+                  setAuth({
+                     auth: true,
+                     user: data.user,
+                  });
+                  let total = 0;
+                  res.data.data.map((value, index) => (total = total + value.quantity));
+                  setCart({
+                     ...cart,
+                     total: total,
+                  });
+                  redirect !== false ? navigate(decodeURIComponent(redirect)) : navigate("/");
+               });
+         })
+         .catch((err) => {
+            // console.log(err.response);
+            let responseError = err.response.data.data;
+            if (responseError.message === "unauthorization") {
+               setAlert(true);
+               setLoading(false);
+               setError("Email atau kata sandi salah");
+            }
+         });
    };
 
    const [values, setValues] = React.useState({
@@ -31,17 +88,29 @@ export default function Category(props) {
       event.preventDefault();
    };
 
+   React.useEffect(() => {
+      window.scrollTo(0, 0);
+   }, [redirect]);
+
    return (
       <React.Fragment>
-         <Typography variant="h6" mt={3} mb={2}>
-            Masuk
-         </Typography>
+         <Box sx={{ mt: 3, mb: 2 }}>
+            <Typography variant="h6">Masuk</Typography>
+            {redirect !== false && (
+               <Typography variant="body2" color="text.secondary" mt={0.5}>
+                  Anda akan diarahkan ke halaman produk
+               </Typography>
+            )}
+         </Box>
          <Box component="form" onSubmit={handleSubmit}>
+            <Collapse in={alert} sx={{ mt: 1 }}>
+               <Alert severity="error">{error}</Alert>
+            </Collapse>
             <FormControl margin="normal" fullWidth>
                <Typography variant="body2" fontWeight="bold" color="text.secondary">
-                  Nomor HP atau Email
+                  Email
                </Typography>
-               <TextField margin="dense" name="email_phone" size="small" onChange={handleChange} required autoFocus fullWidth />
+               <TextField margin="dense" name="email" size="small" onChange={handleChange} required autoFocus fullWidth />
                <Typography variant="caption" color="text.secondary">
                   Contoh: email@zenitha.com
                </Typography>
