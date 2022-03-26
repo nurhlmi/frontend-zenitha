@@ -15,8 +15,8 @@ const authentication = atom({
                   Authorization: "Bearer " + localStorage.getItem("token"),
                },
             });
-            auth = data.success === null ? false : true;
-            user = data.success;
+            auth = data.meta.status === "success" ? true : false;
+            user = data.data;
          } catch {
             auth = false;
             user = null;
@@ -29,27 +29,4 @@ const authentication = atom({
    }),
 });
 
-const carts = atom({
-   key: "carts",
-   default: selector({
-      key: "default-carts",
-      get: async () => {
-         let total = 0;
-         try {
-            const { data } = await axios.get(`${apiUrl}/carts`, {
-               headers: {
-                  Authorization: "Bearer " + localStorage.getItem("token"),
-               },
-            });
-            data.data.map((value, index) => (total = total + value.quantity));
-         } catch {
-            total = 0;
-         }
-         return {
-            total,
-         };
-      },
-   }),
-});
-
-export { authentication, carts };
+export { authentication };
