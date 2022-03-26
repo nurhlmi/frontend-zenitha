@@ -8,7 +8,7 @@ function Before(props) {
    const { auth } = useRecoilValue(authentication);
    useEffect(() => {
       if (auth) {
-         navigate("/dashboard");
+         navigate("/");
       }
    }, [auth, navigate]);
 
