@@ -166,9 +166,9 @@ function App(props) {
          <Box sx={{ ...bg, display: "flex", minHeight: "100vh" }}>
             <CssBaseline />
             <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-               <Header />
+               {window.location.pathname !== "/checkout" && <Header />}
                {props.render}
-               <Footer />
+               {window.location.pathname !== "/checkout" && <Footer />}
             </Box>
          </Box>
       </ThemeProvider>
