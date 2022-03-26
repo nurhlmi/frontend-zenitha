@@ -6,7 +6,8 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 import { useRecoilState } from "recoil";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import { authentication, carts } from "../../store/Authentication";
+import { authentication } from "../../store/Authentication";
+import { carts } from "../../store/Carts";
 import { Param } from "../../components/Param";
 import { apiUrl } from "../../variable/Url";
 
@@ -40,23 +41,19 @@ export default function Category(props) {
             // console.log(res.data.data);
             let data = res.data.data;
             localStorage.setItem("token", data.access_token);
-            localStorage.setItem("user_id", data.user.id);
-            localStorage.setItem("name", data.user.name);
-            localStorage.setItem("role", data.user.role);
-            localStorage.setItem("avatar", data.user.name.substr(0, 1).toLocaleUpperCase());
             axios
                .get(`${apiUrl}/carts`, {
                   headers: {
                      Authorization: "Bearer " + data.access_token,
                   },
                })
-               .then((res) => {
+               .then((row) => {
                   setAuth({
                      auth: true,
                      user: data.user,
                   });
                   let total = 0;
-                  res.data.data.map((value, index) => (total = total + value.quantity));
+                  row.data.data.map((value, index) => (total = total + value.quantity));
                   setCart({
                      ...cart,
                      total: total,
