@@ -37,7 +37,8 @@ import {
 import { apiUrl } from "../../variable/Url";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
-import { authentication, carts } from "../../store/Authentication";
+import { authentication } from "../../store/Authentication";
+import { carts } from "../../store/Carts";
 
 export default function Header(props) {
    const [anchorEl, setAnchorEl] = React.useState(null);
@@ -53,8 +54,6 @@ export default function Header(props) {
    const [auth, setAuth] = useRecoilState(authentication);
    const [cart] = useRecoilState(carts);
    const token = localStorage.getItem("token");
-   const name = localStorage.getItem("name");
-   const avatar = localStorage.getItem("avatar");
    const [modal, setModal] = React.useState(false);
 
    const [category, setCategory] = React.useState([]);
@@ -129,10 +128,14 @@ export default function Header(props) {
             >
                <Box sx={{ alignItems: "center" }}>
                   {/* <EmailRounded fontSize="6px" /> */}
-                  <Typography variant="caption">cs@zenitha.com</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                     cs@zenitha.com
+                  </Typography>
                </Box>
-               <Link component={RouterLink} to="/article" underline="none" color="inherit">
-                  <Typography variant="caption">Artikel & Tutorial</Typography>
+               <Link component={RouterLink} to="/article-tutorial" underline="none" color="inherit">
+                  <Typography variant="body2" color="text.secondary">
+                     Artikel & Tutorial
+                  </Typography>
                </Link>
             </Box>
             <Toolbar sx={{ py: 1, background: "#fff" }}>
@@ -253,10 +256,10 @@ export default function Header(props) {
                                  </Box>
                                  <Box>
                                     <Button onClick={handleClick} color="inherit" sx={{ display: "flex", alignItems: "center", p: 0.5 }}>
-                                       <Avatar>{avatar}</Avatar>
+                                       <Avatar />
                                        <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center" }}>
                                           <Typography sx={{ ml: 1 }} variant="subtitle2" noWrap>
-                                             {name}
+                                             {auth.user.name}
                                           </Typography>
                                           <ArrowDropDownRounded />
                                        </Box>
@@ -297,11 +300,11 @@ export default function Header(props) {
                                        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
                                     >
                                        <MenuItem component={RouterLink} to="/settings">
-                                          <Avatar>{avatar}</Avatar>
+                                          <Avatar />
                                           <Box>
-                                             <Typography noWrap>{name}</Typography>
+                                             <Typography noWrap>{auth.user.name}</Typography>
                                              <Typography variant="caption" noWrap>
-                                                nurhilmi.mail@gmail.com
+                                                {auth.user.email}
                                              </Typography>
                                           </Box>
                                        </MenuItem>
@@ -350,7 +353,6 @@ export default function Header(props) {
                               </Stack>
                            ) : (
                               <Stack spacing={1} direction="row">
-                                 {/* <Button variant="outlined" size="small" onClick={() => setLogin(true)}> */}
                                  <Button variant="outlined" size="small" component={RouterLink} to="/login">
                                     Masuk
                                  </Button>
