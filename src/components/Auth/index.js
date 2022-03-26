@@ -10,7 +10,7 @@ export default function Category(props) {
          <Box
             sx={{
                width: "100%",
-               height: { xs: 0, sm: "90vh" },
+               height: "90vh",
                backgroundSize: "cover",
                backgroundRepeat: "no-repeat",
                backgroundPosition: "right top",
