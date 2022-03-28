@@ -11,7 +11,8 @@ import { LoadingButton } from "@mui/lab";
 
 import { useParams, useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
-import { authentication, carts } from "../../store/Authentication";
+import { authentication } from "../../store/Authentication";
+import { carts } from "../../store/Carts";
 import { apiUrl } from "../../variable/Url";
 import { NumberFormat } from "../../components/Format";
 
@@ -84,11 +85,20 @@ export default function ProductDetail(props) {
             let value = res.data.data;
             setData(value);
             setQuantity(1);
-            setDisabled(false);
+            if (value.stock > 0) {
+               setDisabled(false);
+            } else {
+               setError("Stok barang telah habis");
+            }
             // setQuantity(value.product.minimum_order);
          })
          .catch((xhr) => {
             // console.log(xhr.response);
+            setData({
+               ...data,
+               stock: 0,
+            });
+            setQuantity(1);
             setError("Barang belum tersedia");
          });
    };
