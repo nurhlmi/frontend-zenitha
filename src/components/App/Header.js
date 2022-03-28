@@ -170,7 +170,7 @@ export default function Header(props) {
                                  {category.length > 0 ? (
                                     <Grid container spacing={2}>
                                        {category.map((value, index) => (
-                                          <Grid item xs={12} sm={6} md={4} lg mb={2} key={index}>
+                                          <Grid item xs={12} sm={6} md={4} lg={3} mb={2} key={index}>
                                              <Stack
                                                 direction="row"
                                                 divider={<Divider orientation="vertical" flexItem />}
