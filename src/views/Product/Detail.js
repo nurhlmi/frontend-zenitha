@@ -5,40 +5,31 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "../../style/Slider.css";
 
-import { Container, Grid, Typography, Box, Tooltip, IconButton, TextField, MenuItem, Button, ButtonGroup, Snackbar, CircularProgress } from "@mui/material";
+import {
+   Container,
+   Grid,
+   Typography,
+   Box,
+   Tooltip,
+   IconButton,
+   TextField,
+   MenuItem,
+   Button,
+   ButtonGroup,
+   Snackbar,
+   CircularProgress,
+   Link,
+} from "@mui/material";
 import { FavoriteRounded, FavoriteBorderRounded, Add, Remove, Close } from "@mui/icons-material";
 import { LoadingButton } from "@mui/lab";
 
+import { Link as RouterLink } from "react-router-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
 import { authentication } from "../../store/Authentication";
 import { carts } from "../../store/Carts";
 import { apiUrl } from "../../variable/Url";
 import { NumberFormat } from "../../components/Format";
-
-const settings = {
-   customPaging: function (i) {
-      return (
-         // eslint-disable-next-line jsx-a11y/anchor-is-valid
-         <a>
-            <img alt="Slider" src={`/assets/images/products/image ${10 + i}.png`} />
-         </a>
-      );
-   },
-   dots: true,
-   infinite: false,
-   slidesToShow: 1,
-   slidesToScroll: 1,
-   dotsClass: "slick-dots slick-thumb",
-   responsive: [
-      {
-         breakpoint: 600,
-         settings: {
-            dots: false,
-         },
-      },
-   ],
-};
 
 export default function ProductDetail(props) {
    const { slug } = useParams();
@@ -111,7 +102,7 @@ export default function ProductDetail(props) {
       });
    };
 
-   const handleSubmit = () => {
+   const handleSubmit = (preorder) => {
       setDisabled(true);
       let formData = new FormData();
       formData.append("product_slug", data.product_slug);
@@ -129,9 +120,13 @@ export default function ProductDetail(props) {
                ...cart,
                total: total,
             });
-            setDisabled(false);
-            setSnackbar(true);
-            setMessage(`${quantity} barang berhasil ditambahkan`);
+            if (preorder === true) {
+               navigate("/cart");
+            } else {
+               setDisabled(false);
+               setSnackbar(true);
+               setMessage(`${quantity} barang berhasil ditambahkan`);
+            }
          })
          .catch((xhr) => {
             setDisabled(false);
@@ -146,17 +141,17 @@ export default function ProductDetail(props) {
          });
    };
 
-   const handleCart = () => {
+   const handleCart = (preorder) => {
       if (auth.auth === true) {
          let length = Object.keys(product?.product_variant_option).length;
          if (length === 0) {
-            handleSubmit();
+            handleSubmit(preorder);
          } else {
             if (variant !== undefined) {
                if (length === 1) {
-                  variant.variant1 !== undefined ? handleSubmit() : setError("Pilih varian terlebih dahulu");
+                  variant.variant1 !== undefined ? handleSubmit(preorder) : setError("Pilih varian terlebih dahulu");
                } else if (length === 2) {
-                  variant.variant1 !== undefined && variant.variant2 !== undefined ? handleSubmit() : setError("Pilih varian terlebih dahulu");
+                  variant.variant1 !== undefined && variant.variant2 !== undefined ? handleSubmit(preorder) : setError("Pilih varian terlebih dahulu");
                } else {
                   setError("Pilih varian terlebih dahulu");
                }
@@ -187,6 +182,30 @@ export default function ProductDetail(props) {
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, [slug, variant]);
 
+   const settings = {
+      customPaging: function (i) {
+         return (
+            // eslint-disable-next-line jsx-a11y/anchor-is-valid
+            <a>
+               <img alt="Slider" src={product.product_image[i].product_image_url} />
+            </a>
+         );
+      },
+      dots: true,
+      infinite: false,
+      slidesToShow: 1,
+      slidesToScroll: 1,
+      dotsClass: "slick-dots slick-thumb",
+      responsive: [
+         {
+            breakpoint: 600,
+            settings: {
+               dots: false,
+            },
+         },
+      ],
+   };
+
    const action = (
       <IconButton size="small" aria-label="close" color="inherit" onClick={() => setSnackbar(false)}>
          <Close fontSize="small" />
@@ -199,7 +218,7 @@ export default function ProductDetail(props) {
             <Grid container spacing={{ xs: 1, sm: 4 }}>
                <Grid item xs={12} lg={1} />
                <Grid item xs={12} sm={6} lg={5}>
-                  <Box sx={{ mb: { xs: -1.5, sm: 0 } }}>
+                  <Box sx={{ mb: { xs: -1.5, sm: 2 } }}>
                      <Slider {...settings}>
                         {product.product_image.map((value, index) => (
                            <div key={index}>
@@ -244,7 +263,7 @@ export default function ProductDetail(props) {
                         <Typography fontWeight="bold" mb={1}>
                            Pilih Varian
                         </Typography>
-                        <Grid container spacing={2}>
+                        <Grid container spacing={1}>
                            {product.product_variant_option.map((value, index) => (
                               <Grid item xs={12} md={6} key={index}>
                                  <Box sx={{ display: "flex" }}>
@@ -271,7 +290,7 @@ export default function ProductDetail(props) {
                   )}
                   <Box sx={{ borderTop: "1px solid #e0e0e0", pt: 2, mt: 2 }}>
                      <Typography fontWeight="bold" mb={1}>
-                        Atur jumlah
+                        Atur Jumlah
                      </Typography>
                      <Box sx={{ display: "flex", alignItems: "center" }}>
                         <ButtonGroup>
@@ -303,14 +322,98 @@ export default function ProductDetail(props) {
                            <Typography color="text.secondary">Pcs</Typography>
                         </Box>
                      </Box>
-                     <Typography variant="caption" color="text.secondary" component="div" mt={0.5} mb={1}>
+                     <Typography variant="caption" color="text.secondary" component="div" mt={0.5} mb={2}>
                         Minimal pembelian {product.minimum_order} pcs
                      </Typography>
-                     <LoadingButton variant="contained" onClick={handleCart} disabled={disabled} fullWidth>
-                        Tambahkan ke Keranjang
-                     </LoadingButton>
+                     <Grid container spacing={1}>
+                        {product.preorder !== 0 && (
+                           <Grid item xs={6}>
+                              <LoadingButton variant="outlined" onClick={() => handleCart(true)} disabled={disabled} fullWidth>
+                                 Pre Order
+                              </LoadingButton>
+                           </Grid>
+                        )}
+                        <Grid item xs={product.preorder !== 0 ? 6 : 12}>
+                           <LoadingButton variant="contained" onClick={() => handleCart(false)} disabled={disabled} fullWidth>
+                              Tambahkan ke Keranjang
+                           </LoadingButton>
+                        </Grid>
+                     </Grid>
                   </Box>
                   <Snackbar open={snackbar} autoHideDuration={3000} onClose={() => setSnackbar(false)} message={message} action={action} />
+               </Grid>
+               <Grid item xs={12} lg={1} />
+               <Grid item xs={12} lg={1} />
+               <Grid item xs={12} lg={10}>
+                  <Box sx={{ borderTop: "1px solid #e0e0e0", pt: 2 }}>
+                     <Typography fontWeight="bold" mb={1}>
+                        Detail Produk
+                     </Typography>
+                     <table>
+                        <tbody>
+                           <tr>
+                              <td>
+                                 <Typography color="text.secondary">Kondisi</Typography>
+                              </td>
+                              <td>Baru</td>
+                           </tr>
+                           <tr>
+                              <td>
+                                 <Typography color="text.secondary">Berat</Typography>
+                              </td>
+                              <td>
+                                 {product.product_weight} {product.weight_unit}
+                              </td>
+                           </tr>
+                           {/* <tr>
+                              <td>
+                                 <Typography color="text.secondary">Panjang</Typography>
+                              </td>
+                              <td>
+                                 {product?.['length']} {product.size_unit}
+                              </td>
+                           </tr>
+                           <tr>
+                              <td>
+                                 <Typography color="text.secondary">Tinggi</Typography>
+                              </td>
+                              <td>
+                                 {product.height} {product.size_unit}
+                              </td>
+                           </tr> */}
+                           {product.preorder !== 0 && (
+                              <tr>
+                                 <td>
+                                    <Typography color="text.secondary">Waktu Preorder</Typography>
+                                 </td>
+                                 <td>
+                                    {product.duration} {product.duration_unit}
+                                 </td>
+                              </tr>
+                           )}
+                           <tr>
+                              <td>
+                                 <Typography color="text.secondary">Kategori</Typography>
+                              </td>
+                              <td>
+                                 <Link
+                                    component={RouterLink}
+                                    to={`/category/${product.category.category_slug}/${product.sub_category.sub_category_slug}`}
+                                    underline="none"
+                                 >
+                                    <Typography fontWeight="bold">{product.sub_category.sub_category_name}</Typography>
+                                 </Link>
+                              </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                     <Typography
+                        variant="body1"
+                        dangerouslySetInnerHTML={{
+                           __html: product.description,
+                        }}
+                     />
+                  </Box>
                </Grid>
             </Grid>
          ) : (
