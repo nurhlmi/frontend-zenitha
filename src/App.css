@@ -4,3 +4,8 @@
 .image img {
    width: 100% !important;
 }
+
+td {
+   padding: 5px 30px 5px 0;
+   border-bottom: 1px solid #e0e0e0;
+}
