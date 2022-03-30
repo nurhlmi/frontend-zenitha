@@ -10,6 +10,7 @@ import { ProductCard } from "../components/Card";
 import { Box, Container, Link, Typography, Button, Grid, CircularProgress } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import { apiUrl } from "../variable/Url";
+import { LocalMallOutlined } from "@mui/icons-material";
 
 export default function Home(props) {
    const [banner, setBanner] = React.useState([]);
@@ -239,7 +240,19 @@ export default function Home(props) {
                            )}
                         </React.Fragment>
                      ) : (
-                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>Belum ada produk terbaru</Box>
+                        <Box
+                           sx={{
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              flexDirection: "column",
+                              height: "60vh",
+                              color: "text.secondary",
+                           }}
+                        >
+                           <LocalMallOutlined fontSize="large" />
+                           <Typography mt={1}>Belum ada produk terbaru</Typography>
+                        </Box>
                      )}
                   </React.Fragment>
                ) : (
