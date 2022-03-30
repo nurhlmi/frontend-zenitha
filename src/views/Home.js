@@ -7,7 +7,7 @@ import "../style/Slider.css";
 
 import { ProductCard } from "../components/Card";
 
-import { Box, Container, Link, Typography, Button, Grid } from "@mui/material";
+import { Box, Container, Link, Typography, Button, Grid, CircularProgress } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import { apiUrl } from "../variable/Url";
 
@@ -211,33 +211,41 @@ export default function Home(props) {
                <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
                   Produk Terbaru
                </Typography>
-               {product?.data.length > 0 ? (
-                  <>
-                     <Grid container spacing={{ xs: 1, sm: 2 }}>
-                        {product.data.map((value, index) => (
-                           <Grid item xs={6} sm={4} md={3} lg={2.4} key={index}>
-                              <ProductCard
-                                 key={index}
-                                 name={value.product_name}
-                                 slug={value.main_product.product_slug}
-                                 image={value.image}
-                                 price={value.price}
-                                 discount={null}
-                                 discount_price={null}
-                              />
+               {product !== undefined ? (
+                  <React.Fragment>
+                     {product?.data.length > 0 ? (
+                        <React.Fragment>
+                           <Grid container spacing={{ xs: 1, sm: 2 }}>
+                              {product.data.map((value, index) => (
+                                 <Grid item xs={6} sm={4} md={3} lg={2.4} key={index}>
+                                    <ProductCard
+                                       key={index}
+                                       name={value.product_name}
+                                       slug={value.main_product.product_slug}
+                                       image={value.image}
+                                       price={value.price}
+                                       discount={null}
+                                       discount_price={null}
+                                    />
+                                 </Grid>
+                              ))}
                            </Grid>
-                        ))}
-                     </Grid>
-                     {product.meta.total > 10 && (
-                        <Box sx={{ textAlign: "center", mt: 2 }}>
-                           <Button variant="outlined" component={RouterLink} to="/products">
-                              Lihat Semua
-                           </Button>
-                        </Box>
+                           {product.meta.total > 10 && (
+                              <Box sx={{ textAlign: "center", mt: 2 }}>
+                                 <Button variant="outlined" component={RouterLink} to="/products">
+                                    Lihat Semua
+                                 </Button>
+                              </Box>
+                           )}
+                        </React.Fragment>
+                     ) : (
+                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>Belum ada produk terbaru</Box>
                      )}
-                  </>
+                  </React.Fragment>
                ) : (
-                  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>Belum ada produk terbaru</Box>
+                  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>
+                     <CircularProgress />
+                  </Box>
                )}
             </Box>
          </Container>
