@@ -9,7 +9,7 @@ function ProductCard(props) {
    if (props.discount !== null) {
       if (props.discount_type === "rp") {
          discount = props.price - props.discount;
-         percent = Math.floor((props.discount / props.price) * 100);
+         percent = Math.round((props.discount / props.price) * 100);
       } else {
          discount = props.price - (props.price * props.discount) / 100;
          percent = props.discount;
