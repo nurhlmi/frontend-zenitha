@@ -407,7 +407,9 @@ export default function ProductDetail(props) {
                                     <Typography color="text.secondary">Waktu Preorder</Typography>
                                  </td>
                                  <td>
-                                    {product.duration} {product.duration_unit}
+                                    {product.duration} {product.duration_unit === "day" && "Hari"}
+                                    {product.duration_unit === "week" && "Minggu"}
+                                    {product.duration_unit === "month" && "Bulan"}
                                  </td>
                               </tr>
                            )}
