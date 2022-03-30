@@ -5,7 +5,7 @@ import { ArticleOutlined } from "@mui/icons-material";
 
 import { Link as RouterLink } from "react-router-dom";
 import { apiUrl } from "../../variable/Url";
-import { TimeAgo } from "../../components/DateFormat";
+import { TimeAgo } from "../../components/Format";
 
 export default function Article(props) {
    const [article, setArticle] = React.useState();

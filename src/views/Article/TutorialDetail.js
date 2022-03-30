@@ -5,7 +5,7 @@ import { Container, Typography, Box, Grid, CircularProgress } from "@mui/materia
 import { useParams } from "react-router-dom";
 import { apiUrl } from "../../variable/Url";
 import { YoutubeParser } from "../../components/YoutubeParser";
-import { DateFormat, TimeFormat } from "../../components/DateFormat";
+import { DateFormat, TimeFormat } from "../../components/Format";
 
 export default function ArticleDetail(props) {
    const { slug } = useParams();
