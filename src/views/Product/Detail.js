@@ -94,6 +94,25 @@ export default function ProductDetail(props) {
          });
    };
 
+   const getDiscount = (price, discount, discount_type) => {
+      let output = null;
+      if (discount_type === "rp") {
+         output = price - discount;
+      } else {
+         output = price - (price * discount) / 100;
+      }
+      return output;
+   };
+   const getPercent = (price, discount, discount_type) => {
+      let output = null;
+      if (discount_type === "rp") {
+         output = Math.round((discount / price) * 100);
+      } else {
+         output = discount;
+      }
+      return output;
+   };
+
    const [variant, setVariant] = React.useState();
    const handleChange = (e) => {
       setVariant({
@@ -235,25 +254,26 @@ export default function ProductDetail(props) {
                      </Typography>
                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <Typography variant="h5" component="div" fontWeight="bold">
-                           {NumberFormat(data.price)}
-                           {/* {props.discount !== null ? NumberFormat(props.discount_price) : NumberFormat(props.price)} */}
+                           {product.discount !== null
+                              ? NumberFormat(getDiscount(data.price, product.discount, product.discount_type))
+                              : NumberFormat(data.price)}
                         </Typography>
                         <Tooltip title={wishlist === true ? "Hapus dari Wishlist" : "Tambah ke Wishlist"}>
                            <IconButton onClick={() => setWishlist(!wishlist)}>{wishlist === true ? <FavoriteRounded /> : <FavoriteBorderRounded />}</IconButton>
                         </Tooltip>
                      </Box>
-                     {/* {data.discount !== null && (
+                     {product.discount !== null && (
                         <React.Fragment>
                            <Box sx={{ display: "inline", background: "#ffeaef", borderRadius: 0.5, px: 0.5, pb: 0.4, mr: 1 }}>
                               <Typography variant="caption" color="#ff5c84" fontWeight="bold">
-                                 {data.discount}
+                                 {getPercent(data.price, product.discount, product.discount_type)}%
                               </Typography>
                            </Box>
                            <Typography variant="caption" color="text.secondary">
-                              <del>Rp{data.price}</del>
+                              <del>{NumberFormat(data.price)}</del>
                            </Typography>
                         </React.Fragment>
-                     )} */}
+                     )}
                      <Typography variant="subtitle1" sx={{ display: { xs: "block", sm: "none" } }} mt={1}>
                         {product.product_name}
                      </Typography>
