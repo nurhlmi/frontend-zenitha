@@ -225,8 +225,8 @@ export default function Home(props) {
                                        slug={value.main_product.product_slug}
                                        image={value.image}
                                        price={value.price}
-                                       discount={null}
-                                       discount_price={null}
+                                       discount={value.discount}
+                                       discount_type={value.discount_type}
                                     />
                                  </Grid>
                               ))}
