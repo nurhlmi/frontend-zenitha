@@ -39,7 +39,7 @@ export default function ArticleDetail(props) {
                      </Typography>
                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <Typography variant="body2" color="text.secondary">
-                           {DateFormat("2022-03-26 15:00:00", "day")} | {TimeFormat("2022-03-26 15:00:00")}
+                           {DateFormat(data.created_at, "day")} | {TimeFormat(data.created_at)}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                            Tutorial
