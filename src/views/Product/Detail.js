@@ -385,12 +385,12 @@ export default function ProductDetail(props) {
                                  {product.product_weight} {product.weight_unit}
                               </td>
                            </tr>
-                           {/* <tr>
+                           <tr>
                               <td>
                                  <Typography color="text.secondary">Panjang</Typography>
                               </td>
                               <td>
-                                 {product?.['length']} {product.size_unit}
+                                 {product?.["length"]} {product.size_unit}
                               </td>
                            </tr>
                            <tr>
@@ -400,7 +400,7 @@ export default function ProductDetail(props) {
                               <td>
                                  {product.height} {product.size_unit}
                               </td>
-                           </tr> */}
+                           </tr>
                            {product.preorder !== 0 && (
                               <tr>
                                  <td>
