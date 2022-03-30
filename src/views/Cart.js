@@ -18,21 +18,24 @@ import {
    Snackbar,
    CircularProgress,
 } from "@mui/material";
-import { Add, Remove, Close, DeleteOutlineRounded } from "@mui/icons-material";
+import { Add, Remove, Close, DeleteOutlineRounded, ShoppingCartOutlined } from "@mui/icons-material";
 import { Link as RouterLink } from "react-router-dom";
 
 import { useRecoilState } from "recoil";
-import { carts } from "../store/Authentication";
+import { carts } from "../store/Carts";
 import { apiUrl } from "../variable/Url";
 import { NumberFormat } from "../components/Format";
 
-export default function Category(props) {
+export default function Cart(props) {
    const token = localStorage.getItem("token");
    const [cart, setCart] = useRecoilState(carts);
-   const [loading, setLoading] = React.useState(true);
    const [snackbar, setSnackbar] = React.useState(false);
    const [message, setMessage] = React.useState();
-   const [data, setData] = React.useState([]);
+   const [data, setData] = React.useState();
+   const [subTotal, setSubTotal] = React.useState(0);
+   const [totalDiscount, setTotalDiscount] = React.useState(0);
+   const [totalQuantity, setTotalQuantity] = React.useState(0);
+   const [total, setTotal] = React.useState(0);
 
    const getData = async () => {
       await axios
@@ -42,13 +45,50 @@ export default function Category(props) {
             },
          })
          .then((res) => {
-            console.log(res.data.data);
+            // console.log(res.data.data);
             setData(res.data.data);
-            setLoading(false);
+            let subtotal = 0;
+            let totaldiscount = 0;
+            let totalquantity = 0;
+            // eslint-disable-next-line array-callback-return
+            res.data.data.map((value) => {
+               subtotal += value.quantity * value.product_combination.price;
+               if (value.product_combination.product.discount !== null) {
+                  if (value.product_combination.product.discount_type === "rp") {
+                     totaldiscount += value.quantity * value.product_combination.product.discount;
+                  } else {
+                     totaldiscount += value.quantity * (value.product_combination.price * (value.product_combination.product.discount / 100));
+                  }
+               }
+               totalquantity += value.quantity;
+            });
+            setSubTotal(subtotal);
+            setTotalDiscount(Math.round(totaldiscount));
+            setTotalQuantity(totalquantity);
+            setTotal(subtotal - totaldiscount);
          })
          .catch((err) => {
             console.log(err.response);
          });
+   };
+
+   const getDiscount = (price, discount, discount_type) => {
+      let output = null;
+      if (discount_type === "rp") {
+         output = price - discount;
+      } else {
+         output = price - (price * discount) / 100;
+      }
+      return output;
+   };
+   const getPercent = (price, discount, discount_type) => {
+      let output = null;
+      if (discount_type === "rp") {
+         output = Math.floor((discount / price) * 100);
+      } else {
+         output = discount;
+      }
+      return output;
    };
 
    React.useEffect(() => {
@@ -73,7 +113,8 @@ export default function Category(props) {
             )
             .then((res) => {
                // console.log(res.data.data);
-               setData(data.map((el) => (el.id === product_id ? { ...el, quantity } : el)));
+               // setData(data.map((el) => (el.id === product_id ? { ...el, quantity } : el)));
+               getData();
                setCart({
                   ...cart,
                   total: type === "decrease" ? cart.total - 1 : cart.total + 1,
@@ -94,7 +135,8 @@ export default function Category(props) {
          })
          .then((res) => {
             // console.log(res.data.data);
-            setData(data.filter(({ id }) => id !== product_id));
+            // setData(data.filter(({ id }) => id !== product_id));
+            getData();
             let total = cart.total - quantity;
             setCart({
                ...cart,
@@ -116,25 +158,25 @@ export default function Category(props) {
 
    return (
       <Container sx={{ flex: 1 }}>
-         {loading === false ? (
+         {data !== undefined ? (
             data.length > 0 ? (
-               <>
+               <React.Fragment>
                   <Typography variant="h6" py={3}>
                      Keranjang
                   </Typography>
                   <Grid container spacing={{ xs: 1, sm: 4 }}>
-                     <Grid item xs={12} md={7} sx={{ mb: 4 }}>
+                     <Grid item xs={12} md={7} lg={8} sx={{ mb: 4 }}>
                         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                           <FormControlLabel control={<Checkbox size="small" />} label="Pilih Semua" sx={{ ml: 0 }} />
-                           <Typography fontWeight="bold" sx={{ cursor: "pointer" }}>
+                           <FormControlLabel control={<Checkbox size="small" disabled />} label="Pilih Semua" sx={{ ml: 0 }} />
+                           {/* <Typography fontWeight="bold" sx={{ cursor: "pointer" }}>
                               Hapus
-                           </Typography>
+                           </Typography> */}
                         </Box>
                         {data.map((value, index) => (
                            <Box key={index}>
                               <Grid container alignItems="center" sx={{ borderTop: "4px solid #eee", mt: 1, pt: 2 }}>
                                  <Grid item>
-                                    <Checkbox size="small" />
+                                    <Checkbox size="small" disabled />
                                  </Grid>
                                  <Grid item>
                                     <Box component={RouterLink} to={`/product/${value.product_combination.product_slug}`}>
@@ -142,31 +184,45 @@ export default function Category(props) {
                                     </Box>
                                  </Grid>
                                  <Grid item xs>
-                                    <Box sx={{ ml: 1.5 }}>
+                                    <Box sx={{ ml: 1.5, mb: 1 }}>
                                        <Link component={RouterLink} to={`/product/${value.product_combination.product_slug}`} underline="none">
                                           <Typography noWrap>{value.product_name}</Typography>
                                        </Link>
                                        {value.product_combination.combination_string !== null && (
                                           <Typography variant="caption" color="text.secondary" noWrap>
-                                             {value.product_combination.combination_string.replaceAll("-", " ")}
+                                             {value.product_combination.combination_string.replaceAll("-", ", ")}
                                           </Typography>
                                        )}
-                                       <Typography variant="subtitle2" component="div" fontWeight="bold" mt={1}>
-                                          {NumberFormat(value.product_combination.price)}
-                                          {/* {value.discount !== null ? `Rp${value.discount_price}` : `Rp${value.price}`} */}
-                                       </Typography>
-                                       {/* {value.discount !== null && (
-                                       <React.Fragment>
-                                          <Box sx={{ display: "inline", background: "#ffeaef", borderRadius: 0.5, px: 0.5, pb: 0.4, mr: 1 }}>
-                                             <Typography variant="caption" color="#ff5c84" fontWeight="bold">
-                                                {value.discount}
-                                             </Typography>
-                                          </Box>
-                                          <Typography variant="caption" color="text.secondary">
-                                             <del>Rp{value.price}</del>
+                                       <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
+                                          {value.product_combination.product.discount !== null && (
+                                             <React.Fragment>
+                                                <Box sx={{ display: "inline", background: "#ffeaef", borderRadius: 0.5, px: 0.5, pb: 0.4, mr: 1 }}>
+                                                   <Typography variant="caption" color="#ff5c84" fontWeight="bold">
+                                                      {getPercent(
+                                                         value.product_combination.price,
+                                                         value.product_combination.product.discount,
+                                                         value.product_combination.product.discount_type
+                                                      )}
+                                                      %
+                                                   </Typography>
+                                                </Box>
+                                                <Typography variant="caption" color="text.secondary" mr={1}>
+                                                   <del>{NumberFormat(value.product_combination.price)}</del>
+                                                </Typography>
+                                             </React.Fragment>
+                                          )}
+                                          <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                             {value.product_combination.product.discount !== null
+                                                ? NumberFormat(
+                                                     getDiscount(
+                                                        value.product_combination.price,
+                                                        value.product_combination.product.discount,
+                                                        value.product_combination.product.discount_type
+                                                     )
+                                                  )
+                                                : NumberFormat(value.product_combination.price)}
                                           </Typography>
-                                       </React.Fragment>
-                                    )} */}
+                                       </Box>
                                     </Box>
                                  </Grid>
                               </Grid>
@@ -202,28 +258,31 @@ export default function Category(props) {
                            <CardContent>
                               <Typography fontWeight="bold">Ringkasan Belanja</Typography>
                               <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-                                 <Typography color="text.secondary">Total Harga (2 Barang)</Typography>
-                                 <Typography color="text.secondary">Rp318.000</Typography>
+                                 <Typography color="text.secondary">Total Harga ({totalQuantity} Barang)</Typography>
+                                 <Typography color="text.secondary">{NumberFormat(subTotal)}</Typography>
                               </Box>
                               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
                                  <Typography color="text.secondary">Total Diskon Barang</Typography>
-                                 <Typography color="text.secondary">-Rp64.000</Typography>
+                                 <Typography color="text.secondary">-{NumberFormat(totalDiscount)}</Typography>
                               </Box>
                               <Divider />
                               <Box sx={{ display: "flex", justifyContent: "space-between", my: 2 }}>
                                  <Typography fontWeight="bold">Total Harga</Typography>
-                                 <Typography fontWeight="bold">Rp254.000</Typography>
+                                 <Typography fontWeight="bold">{NumberFormat(total)}</Typography>
                               </Box>
-                              <Button variant="contained" size="large" fullWidth>
-                                 Beli (2)
+                              <Button variant="contained" size="large" component={RouterLink} to="/checkout" fullWidth>
+                                 Beli ({totalQuantity})
                               </Button>
                            </CardContent>
                         </Card>
                      </Grid>
                   </Grid>
-               </>
+               </React.Fragment>
             ) : (
-               <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>Keranjang Kosong</Box>
+               <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", height: "60vh", color: "text.secondary" }}>
+                  <ShoppingCartOutlined fontSize="large" />
+                  <Typography mt={1}>Keranjang kosong</Typography>
+               </Box>
             )
          ) : (
             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>
