@@ -19,24 +19,23 @@ import {
    CircularProgress,
 } from "@mui/material";
 import { Add, Remove, Close, DeleteOutlineRounded, ShoppingCartOutlined } from "@mui/icons-material";
-import { Link as RouterLink } from "react-router-dom";
 
-import { useRecoilState } from "recoil";
 import { carts } from "../store/Carts";
 import { apiUrl } from "../variable/Url";
 import { NumberFormat } from "../components/Format";
+import { useRecoilState } from "recoil";
+import { authentication } from "../store/Authentication";
+import { Link as RouterLink } from "react-router-dom";
 
 export default function Cart(props) {
    const token = localStorage.getItem("token");
-   const [cart, setCart] = useRecoilState(carts);
-   const [snackbar, setSnackbar] = React.useState(false);
-   const [message, setMessage] = React.useState();
-   const [data, setData] = React.useState();
-   const [subTotal, setSubTotal] = React.useState(0);
-   const [totalDiscount, setTotalDiscount] = React.useState(0);
-   const [totalQuantity, setTotalQuantity] = React.useState(0);
-   const [total, setTotal] = React.useState(0);
+   const [auth] = useRecoilState(authentication);
 
+   const [data, setData] = React.useState();
+   const [productPrice, setProductPrice] = React.useState(0);
+   const [productDiscount, setProductDiscount] = React.useState(0);
+   const [productQuantity, setProductQuantity] = React.useState(0);
+   const [totalPrice, setTotalPrice] = React.useState(0);
    const getData = async () => {
       await axios
          .get(`${apiUrl}/carts`, {
@@ -47,25 +46,25 @@ export default function Cart(props) {
          .then((res) => {
             // console.log(res.data.data);
             setData(res.data.data);
-            let subtotal = 0;
-            let totaldiscount = 0;
-            let totalquantity = 0;
+            let productprice = 0;
+            let productdiscount = 0;
+            let productquantity = 0;
             // eslint-disable-next-line array-callback-return
             res.data.data.map((value) => {
-               subtotal += value.quantity * value.product_combination.price;
+               productprice += value.quantity * value.product_combination.price;
                if (value.product_combination.product.discount !== null) {
                   if (value.product_combination.product.discount_type === "rp") {
-                     totaldiscount += value.quantity * value.product_combination.product.discount;
+                     productdiscount += value.quantity * value.product_combination.product.discount;
                   } else {
-                     totaldiscount += value.quantity * (value.product_combination.price * (value.product_combination.product.discount / 100));
+                     productdiscount += value.quantity * (value.product_combination.price * (value.product_combination.product.discount / 100));
                   }
                }
-               totalquantity += value.quantity;
+               productquantity += value.quantity;
             });
-            setSubTotal(subtotal);
-            setTotalDiscount(Math.round(totaldiscount));
-            setTotalQuantity(totalquantity);
-            setTotal(subtotal - totaldiscount);
+            setProductPrice(productprice);
+            setProductDiscount(Math.round(productdiscount));
+            setProductQuantity(productquantity);
+            setTotalPrice(productprice - productdiscount);
          })
          .catch((err) => {
             console.log(err.response);
@@ -81,6 +80,7 @@ export default function Cart(props) {
       }
       return output;
    };
+
    const getPercent = (price, discount, discount_type) => {
       let output = null;
       if (discount_type === "rp") {
@@ -91,12 +91,31 @@ export default function Cart(props) {
       return output;
    };
 
+   const [address, setAddress] = React.useState();
+   const getAddress = async () => {
+      await axios
+         .get(`${apiUrl}/user/address/fetch`, {
+            params: {
+               user_id: auth.user.id,
+            },
+            headers: {
+               Authorization: "Bearer " + token,
+            },
+         })
+         .then((res) => {
+            // console.log(res.data.data);
+            setAddress(res.data.data);
+         });
+   };
+
    React.useEffect(() => {
       getData();
+      getAddress();
       window.scrollTo(0, 0);
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
 
+   const [cart, setCart] = useRecoilState(carts);
    const handleQuantity = async (product_id, quantity, stock, type) => {
       if (quantity >= 1 && quantity <= stock) {
          await axios
@@ -126,6 +145,8 @@ export default function Cart(props) {
       }
    };
 
+   const [snackbar, setSnackbar] = React.useState(false);
+   const [message, setMessage] = React.useState();
    const handleDelete = async (product_id, quantity) => {
       await axios
          .delete(`${apiUrl}/carts/delete/${product_id}`, {
@@ -158,7 +179,7 @@ export default function Cart(props) {
 
    return (
       <Container sx={{ flex: 1 }}>
-         {data !== undefined ? (
+         {data !== undefined && address !== undefined ? (
             data.length > 0 ? (
                <React.Fragment>
                   <Typography variant="h6" py={3}>
@@ -167,7 +188,7 @@ export default function Cart(props) {
                   <Grid container spacing={{ xs: 1, sm: 4 }}>
                      <Grid item xs={12} md={7} lg={8} sx={{ mb: 4 }}>
                         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                           <FormControlLabel control={<Checkbox size="small" disabled />} label="Pilih Semua" sx={{ ml: 0 }} />
+                           <FormControlLabel control={<Checkbox size="small" checked disabled />} label="Pilih Semua" sx={{ ml: 0 }} />
                            {/* <Typography fontWeight="bold" sx={{ cursor: "pointer" }}>
                               Hapus
                            </Typography> */}
@@ -176,7 +197,7 @@ export default function Cart(props) {
                            <Box key={index}>
                               <Grid container alignItems="center" sx={{ borderTop: "4px solid #eee", mt: 1, pt: 2 }}>
                                  <Grid item>
-                                    <Checkbox size="small" disabled />
+                                    <Checkbox size="small" checked disabled />
                                  </Grid>
                                  <Grid item>
                                     <Box component={RouterLink} to={`/product/${value.product_combination.product_slug}`}>
@@ -258,20 +279,26 @@ export default function Cart(props) {
                            <CardContent>
                               <Typography fontWeight="bold">Ringkasan Belanja</Typography>
                               <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-                                 <Typography color="text.secondary">Total Harga ({totalQuantity} Barang)</Typography>
-                                 <Typography color="text.secondary">{NumberFormat(subTotal)}</Typography>
+                                 <Typography color="text.secondary">Total Harga ({productQuantity} Barang)</Typography>
+                                 <Typography color="text.secondary">{NumberFormat(productPrice)}</Typography>
                               </Box>
                               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
                                  <Typography color="text.secondary">Total Diskon Barang</Typography>
-                                 <Typography color="text.secondary">-{NumberFormat(totalDiscount)}</Typography>
+                                 <Typography color="text.secondary">-{NumberFormat(productDiscount)}</Typography>
                               </Box>
                               <Divider />
                               <Box sx={{ display: "flex", justifyContent: "space-between", my: 2 }}>
                                  <Typography fontWeight="bold">Total Harga</Typography>
-                                 <Typography fontWeight="bold">{NumberFormat(total)}</Typography>
+                                 <Typography fontWeight="bold">{NumberFormat(totalPrice)}</Typography>
                               </Box>
-                              <Button variant="contained" size="large" component={RouterLink} to="/checkout" fullWidth>
-                                 Beli ({totalQuantity})
+                              <Button
+                                 variant="contained"
+                                 size="large"
+                                 component={RouterLink}
+                                 to={address.length > 0 ? "/checkout" : "/settings/address"}
+                                 fullWidth
+                              >
+                                 Beli ({productQuantity})
                               </Button>
                            </CardContent>
                         </Card>
