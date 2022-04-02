@@ -179,132 +179,130 @@ export default function Cart(props) {
 
    return (
       <Container sx={{ flex: 1 }}>
+         <Typography variant="h6" fontWeight="bold" py={3}>
+            Keranjang
+         </Typography>
          {data !== undefined && address !== undefined ? (
             data.length > 0 ? (
-               <React.Fragment>
-                  <Typography variant="h6" py={3}>
-                     Keranjang
-                  </Typography>
-                  <Grid container spacing={{ xs: 1, sm: 4 }}>
-                     <Grid item xs={12} md={7} lg={8} sx={{ mb: 4 }}>
-                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                           <FormControlLabel control={<Checkbox size="small" checked disabled />} label="Pilih Semua" sx={{ ml: 0 }} />
-                           {/* <Typography fontWeight="bold" sx={{ cursor: "pointer" }}>
+               <Grid container spacing={{ xs: 1, sm: 4 }}>
+                  <Grid item xs={12} md={7} lg={8} sx={{ mb: 4 }}>
+                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <FormControlLabel control={<Checkbox size="small" checked disabled />} label="Pilih Semua" sx={{ ml: 0 }} />
+                        {/* <Typography fontWeight="bold" sx={{ cursor: "pointer" }}>
                               Hapus
                            </Typography> */}
-                        </Box>
-                        {data.map((value, index) => (
-                           <Box key={index}>
-                              <Grid container alignItems="center" sx={{ borderTop: "4px solid #eee", mt: 1, pt: 2 }}>
-                                 <Grid item>
-                                    <Checkbox size="small" checked disabled />
-                                 </Grid>
-                                 <Grid item>
-                                    <Box component={RouterLink} to={`/product/${value.product_combination.product_slug}`}>
-                                       <img alt={value.product_name} src={value.product_image} width="80" />
-                                    </Box>
-                                 </Grid>
-                                 <Grid item xs>
-                                    <Box sx={{ ml: 1.5, mb: 1 }}>
-                                       <Link component={RouterLink} to={`/product/${value.product_combination.product_slug}`} underline="none">
-                                          <Typography noWrap>{value.product_name}</Typography>
-                                       </Link>
-                                       {value.product_combination.combination_string !== null && (
-                                          <Typography variant="caption" color="text.secondary" noWrap>
-                                             {value.product_combination.combination_string.replaceAll("-", ", ")}
-                                          </Typography>
-                                       )}
-                                       <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
-                                          {value.product_combination.product.discount !== null && (
-                                             <React.Fragment>
-                                                <Box sx={{ display: "inline", background: "#ffeaef", borderRadius: 0.5, px: 0.5, pb: 0.4, mr: 1 }}>
-                                                   <Typography variant="caption" color="#ff5c84" fontWeight="bold">
-                                                      {getPercent(
-                                                         value.product_combination.price,
-                                                         value.product_combination.product.discount,
-                                                         value.product_combination.product.discount_type
-                                                      )}
-                                                      %
-                                                   </Typography>
-                                                </Box>
-                                                <Typography variant="caption" color="text.secondary" mr={1}>
-                                                   <del>{NumberFormat(value.product_combination.price)}</del>
-                                                </Typography>
-                                             </React.Fragment>
-                                          )}
-                                          <Typography variant="subtitle2" component="div" fontWeight="bold">
-                                             {value.product_combination.product.discount !== null
-                                                ? NumberFormat(
-                                                     getDiscount(
-                                                        value.product_combination.price,
-                                                        value.product_combination.product.discount,
-                                                        value.product_combination.product.discount_type
-                                                     )
-                                                  )
-                                                : NumberFormat(value.product_combination.price)}
-                                          </Typography>
-                                       </Box>
-                                    </Box>
-                                 </Grid>
+                     </Box>
+                     {data.map((value, index) => (
+                        <Box key={index}>
+                           <Grid container alignItems="center" sx={{ borderTop: "4px solid #eee", mt: 1, pt: 2 }}>
+                              <Grid item>
+                                 <Checkbox size="small" checked disabled />
                               </Grid>
-                              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", py: 1 }}>
-                                 <Tooltip title="Hapus">
-                                    <IconButton onClick={() => handleDelete(value.id, value.quantity)}>
-                                       <DeleteOutlineRounded />
-                                    </IconButton>
-                                 </Tooltip>
-                                 <ButtonGroup sx={{ ml: 1 }}>
-                                    <Button
-                                       aria-label="decrease"
-                                       onClick={() => handleQuantity(value.id, value.quantity - 1, value.product_combination.stock, "decrease")}
-                                       size="small"
-                                    >
-                                       <Remove fontSize="small" />
-                                    </Button>
-                                    <Button size="small">{value.quantity}</Button>
-                                    <Button
-                                       aria-label="increase"
-                                       onClick={() => handleQuantity(value.id, value.quantity + 1, value.product_combination.stock, "increase")}
-                                       size="small"
-                                    >
-                                       <Add fontSize="small" />
-                                    </Button>
-                                 </ButtonGroup>
-                              </Box>
+                              <Grid item>
+                                 <Box component={RouterLink} to={`/product/${value.product_combination.product_slug}`}>
+                                    <img alt={value.product_name} src={value.product_image} width="80" />
+                                 </Box>
+                              </Grid>
+                              <Grid item xs>
+                                 <Box sx={{ ml: 1.5, mb: 1 }}>
+                                    <Link component={RouterLink} to={`/product/${value.product_combination.product_slug}`} underline="none">
+                                       <Typography noWrap>{value.product_name}</Typography>
+                                    </Link>
+                                    {value.product_combination.combination_string !== null && (
+                                       <Typography variant="caption" color="text.secondary" noWrap>
+                                          {value.product_combination.combination_string.replaceAll("-", ", ")}
+                                       </Typography>
+                                    )}
+                                    <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
+                                       {value.product_combination.product.discount !== null && (
+                                          <React.Fragment>
+                                             <Box sx={{ display: "inline", background: "#ffeaef", borderRadius: 0.5, px: 0.5, pb: 0.4, mr: 1 }}>
+                                                <Typography variant="caption" color="#ff5c84" fontWeight="bold">
+                                                   {getPercent(
+                                                      value.product_combination.price,
+                                                      value.product_combination.product.discount,
+                                                      value.product_combination.product.discount_type
+                                                   )}
+                                                   %
+                                                </Typography>
+                                             </Box>
+                                             <Typography variant="caption" color="text.secondary" mr={1}>
+                                                <del>{NumberFormat(value.product_combination.price)}</del>
+                                             </Typography>
+                                          </React.Fragment>
+                                       )}
+                                       <Typography variant="subtitle2" component="div" fontWeight="bold">
+                                          {value.product_combination.product.discount !== null
+                                             ? NumberFormat(
+                                                  getDiscount(
+                                                     value.product_combination.price,
+                                                     value.product_combination.product.discount,
+                                                     value.product_combination.product.discount_type
+                                                  )
+                                               )
+                                             : NumberFormat(value.product_combination.price)}
+                                       </Typography>
+                                    </Box>
+                                 </Box>
+                              </Grid>
+                           </Grid>
+                           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", py: 1 }}>
+                              <Tooltip title="Hapus">
+                                 <IconButton onClick={() => handleDelete(value.id, value.quantity)}>
+                                    <DeleteOutlineRounded />
+                                 </IconButton>
+                              </Tooltip>
+                              <ButtonGroup sx={{ ml: 1 }}>
+                                 <Button
+                                    aria-label="decrease"
+                                    onClick={() => handleQuantity(value.id, value.quantity - 1, value.product_combination.stock, "decrease")}
+                                    size="small"
+                                 >
+                                    <Remove fontSize="small" />
+                                 </Button>
+                                 <Button size="small">{value.quantity}</Button>
+                                 <Button
+                                    aria-label="increase"
+                                    onClick={() => handleQuantity(value.id, value.quantity + 1, value.product_combination.stock, "increase")}
+                                    size="small"
+                                 >
+                                    <Add fontSize="small" />
+                                 </Button>
+                              </ButtonGroup>
                            </Box>
-                        ))}
-                     </Grid>
-                     <Grid item xs={12} md={5} lg={4}>
-                        <Card>
-                           <CardContent>
-                              <Typography fontWeight="bold">Ringkasan Belanja</Typography>
-                              <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-                                 <Typography color="text.secondary">Total Harga ({productQuantity} Barang)</Typography>
-                                 <Typography color="text.secondary">{NumberFormat(productPrice)}</Typography>
-                              </Box>
-                              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-                                 <Typography color="text.secondary">Total Diskon Barang</Typography>
-                                 <Typography color="text.secondary">-{NumberFormat(productDiscount)}</Typography>
-                              </Box>
-                              <Divider />
-                              <Box sx={{ display: "flex", justifyContent: "space-between", my: 2 }}>
-                                 <Typography fontWeight="bold">Total Harga</Typography>
-                                 <Typography fontWeight="bold">{NumberFormat(totalPrice)}</Typography>
-                              </Box>
-                              <Button
-                                 variant="contained"
-                                 size="large"
-                                 component={RouterLink}
-                                 to={address.length > 0 ? "/checkout" : "/settings/address"}
-                                 fullWidth
-                              >
-                                 Beli ({productQuantity})
-                              </Button>
-                           </CardContent>
-                        </Card>
-                     </Grid>
+                        </Box>
+                     ))}
                   </Grid>
-               </React.Fragment>
+                  <Grid item xs={12} md={5} lg={4}>
+                     <Card>
+                        <CardContent>
+                           <Typography fontWeight="bold">Ringkasan Belanja</Typography>
+                           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+                              <Typography color="text.secondary">Total Harga ({productQuantity} Barang)</Typography>
+                              <Typography color="text.secondary">{NumberFormat(productPrice)}</Typography>
+                           </Box>
+                           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+                              <Typography color="text.secondary">Total Diskon Barang</Typography>
+                              <Typography color="text.secondary">-{NumberFormat(productDiscount)}</Typography>
+                           </Box>
+                           <Divider />
+                           <Box sx={{ display: "flex", justifyContent: "space-between", my: 2 }}>
+                              <Typography fontWeight="bold">Total Harga</Typography>
+                              <Typography fontWeight="bold">{NumberFormat(totalPrice)}</Typography>
+                           </Box>
+                           <Button
+                              variant="contained"
+                              size="large"
+                              component={RouterLink}
+                              to={address.length > 0 ? "/checkout" : "/settings/address"}
+                              fullWidth
+                           >
+                              Beli ({productQuantity})
+                           </Button>
+                        </CardContent>
+                     </Card>
+                  </Grid>
+               </Grid>
             ) : (
                <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", height: "60vh", color: "text.secondary" }}>
                   <ShoppingCartOutlined fontSize="large" />
