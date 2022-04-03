@@ -19,6 +19,7 @@ function ProductCard(props) {
       <Card sx={{ height: "100%" }}>
          <CardActionArea component={RouterLink} to={`/product/${props.slug}`} sx={{ height: "100%" }}>
             <CardMedia component="img" height={{ xs: 150, sm: 200 }} image={props.image} alt={props.name} />
+            <Box sx={{ position: "absolute", top: 5, right: 5 }}>{props.wishlist}</Box>
             <CardContent>
                <Typography gutterBottom variant="body2" wrap="nowrap">
                   {props.name}

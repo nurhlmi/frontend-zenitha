@@ -41,7 +41,6 @@ export default function ProductDetail(props) {
    const [data, setData] = React.useState();
    const [product, setProduct] = React.useState();
    const [quantity, setQuantity] = React.useState(0);
-   const [wishlist, setWishlist] = React.useState(false);
    const [snackbar, setSnackbar] = React.useState(false);
    const [disabled, setDisabled] = React.useState(false);
    const [error, setError] = React.useState(false);
@@ -56,6 +55,7 @@ export default function ProductDetail(props) {
             setData(value);
             setProduct(value.product);
             setQuantity(value.product.minimum_order);
+            getWishlist(auth.user.id, value.product.id);
          })
          .catch((xhr) => {
             console.log(xhr.response);
@@ -103,6 +103,7 @@ export default function ProductDetail(props) {
       }
       return output;
    };
+
    const getPercent = (price, discount, discount_type) => {
       let output = null;
       if (discount_type === "rp") {
@@ -111,6 +112,52 @@ export default function ProductDetail(props) {
          output = discount;
       }
       return output;
+   };
+
+   const [wishlist, setWishlist] = React.useState();
+   const getWishlist = async (user_id, product_id) => {
+      await axios
+         .get(`${apiUrl}/user_wishlist/show`, {
+            params: {
+               user_id: user_id,
+               product_id: product_id,
+            },
+            headers: {
+               Authorization: "Bearer " + token,
+            },
+         })
+         .then((res) => {
+            // console.log(res.data.data);
+            res.data.data !== null ? setWishlist(true) : setWishlist(false);
+         })
+         .catch((xhr) => {
+            console.log(xhr.response);
+         });
+   };
+   const handleWishlist = async (product_id) => {
+      let formData = new FormData();
+      formData.append("product_id", product_id);
+      await axios
+         .post(`${apiUrl}/user_wishlist/wishlist`, formData, {
+            headers: {
+               Authorization: "Bearer " + token,
+            },
+         })
+         .then((res) => {
+            // console.log(res.data.data);
+            if (res.data.data !== null) {
+               setWishlist(true);
+               setSnackbar(true);
+               setMessage(`Barang berhasil disimpan di Wishlist`);
+            } else {
+               setWishlist(false);
+               setSnackbar(true);
+               setMessage(`Barang telah dihapus dari Wishlist`);
+            }
+         })
+         .catch((xhr) => {
+            console.log(xhr.response);
+         });
    };
 
    const [variant, setVariant] = React.useState();
@@ -233,7 +280,7 @@ export default function ProductDetail(props) {
 
    return (
       <Container sx={{ flex: 1, mt: { xs: 1, sm: 0, lg: 4 } }}>
-         {data !== undefined && product !== undefined ? (
+         {data !== undefined && product !== undefined && wishlist !== undefined ? (
             <Grid container spacing={{ xs: 1, sm: 4 }}>
                <Grid item xs={12} lg={1} />
                <Grid item xs={12} sm={6} lg={5}>
@@ -259,7 +306,9 @@ export default function ProductDetail(props) {
                               : NumberFormat(data.price)}
                         </Typography>
                         <Tooltip title={wishlist === true ? "Hapus dari Wishlist" : "Tambah ke Wishlist"}>
-                           <IconButton onClick={() => setWishlist(!wishlist)}>{wishlist === true ? <FavoriteRounded /> : <FavoriteBorderRounded />}</IconButton>
+                           <IconButton onClick={() => handleWishlist(data.product.id)} color={wishlist === true ? "error" : "inherit"}>
+                              {wishlist === true ? <FavoriteRounded /> : <FavoriteBorderRounded />}
+                           </IconButton>
                         </Tooltip>
                      </Box>
                      {product.discount !== null && (
