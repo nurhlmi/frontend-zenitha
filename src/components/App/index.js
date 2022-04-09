@@ -16,7 +16,7 @@ let theme = createTheme({
       },
    },
    typography: {
-      fontFamily: `"Archivo", sans-serif`,
+      fontFamily: `"OpenSauceOne", sans-serif`,
       h5: {
          fontWeight: 500,
          fontSize: 26,
