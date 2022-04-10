@@ -32,7 +32,6 @@ import {
    LockOutlined,
    StorefrontOutlined,
    ShoppingBagOutlined,
-   EmailRounded,
 } from "@mui/icons-material";
 
 import { apiUrl } from "../../variable/Url";
