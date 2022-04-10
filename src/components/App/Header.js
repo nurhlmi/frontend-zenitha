@@ -32,7 +32,6 @@ import {
    LockOutlined,
    StorefrontOutlined,
    ShoppingBagOutlined,
-   AccountCircleOutlined,
 } from "@mui/icons-material";
 
 import { apiUrl } from "../../variable/Url";
@@ -313,7 +312,7 @@ export default function Header(props) {
                                        transformOrigin={{ horizontal: "right", vertical: "top" }}
                                        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
                                     >
-                                       <MenuItem>
+                                       <MenuItem component={RouterLink} to="/settings">
                                           <Avatar />
                                           <Box>
                                              <Typography noWrap>{auth.user.name}</Typography>
@@ -344,12 +343,6 @@ export default function Header(props) {
                                           </MenuItem>
                                           <Divider />
                                        </Box>
-                                       <MenuItem component={RouterLink} to="/settings">
-                                          <ListItemIcon sx={{ mr: 0 }}>
-                                             <AccountCircleOutlined fontSize="small" />
-                                          </ListItemIcon>
-                                          Biodata Diri
-                                       </MenuItem>
                                        <MenuItem component={RouterLink} to="/settings/address">
                                           <ListItemIcon sx={{ mr: 0 }}>
                                              <StorefrontOutlined fontSize="small" />
