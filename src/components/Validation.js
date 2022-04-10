@@ -11,6 +11,10 @@ function Validation(error) {
          output = "Masukkan nomor telepon.";
       } else if (error[0] === "The phone number must be an integer.") {
          output = "Masukkan nomor telepon.";
+      } else if (error[0] === "The old password field is required.") {
+         output = "Masukkan kata sandi saat ini.";
+      } else if (error[0] === "old password is invalid") {
+         output = "Kata sandi lama salah.";
       } else if (error[0] === "The password field is required.") {
          output = "Masukkan kata sandi.";
       } else if (error[0] === "The password must be at least 8 characters.") {
@@ -18,7 +22,7 @@ function Validation(error) {
       } else if (error[0] === "The password confirmation field is required.") {
          output = "Masukkan konfirmasi kata sandi.";
       } else if (error[0] === "The password confirmation does not match.") {
-         output = "Konfirmasi password dengan benar.";
+         output = "Konfirmasi kata sandi dengan benar.";
       } else if (error[0] === "The password confirmation must be at least 8 characters.") {
          output = "Masukkan kata sandi minimal 8 karakter.";
       }
