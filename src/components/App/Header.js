@@ -32,6 +32,7 @@ import {
    LockOutlined,
    StorefrontOutlined,
    ShoppingBagOutlined,
+   AccountCircleOutlined,
 } from "@mui/icons-material";
 
 import { apiUrl } from "../../variable/Url";
@@ -312,11 +313,11 @@ export default function Header(props) {
                                        transformOrigin={{ horizontal: "right", vertical: "top" }}
                                        anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
                                     >
-                                       <MenuItem component={RouterLink} to="/settings">
+                                       <MenuItem>
                                           <Avatar />
                                           <Box>
                                              <Typography noWrap>{auth.user.name}</Typography>
-                                             <Typography variant="caption" noWrap>
+                                             <Typography variant="caption" component="div" color="text.secondary" noWrap>
                                                 {auth.user.email}
                                              </Typography>
                                           </Box>
@@ -341,7 +342,14 @@ export default function Header(props) {
                                              </ListItemIcon>
                                              Kategori
                                           </MenuItem>
+                                          <Divider />
                                        </Box>
+                                       <MenuItem component={RouterLink} to="/settings">
+                                          <ListItemIcon sx={{ mr: 0 }}>
+                                             <AccountCircleOutlined fontSize="small" />
+                                          </ListItemIcon>
+                                          Biodata Diri
+                                       </MenuItem>
                                        <MenuItem component={RouterLink} to="/settings/address">
                                           <ListItemIcon sx={{ mr: 0 }}>
                                              <StorefrontOutlined fontSize="small" />
@@ -352,7 +360,7 @@ export default function Header(props) {
                                           <ListItemIcon sx={{ mr: 0 }}>
                                              <LockOutlined fontSize="small" />
                                           </ListItemIcon>
-                                          Ganti Password
+                                          Ubah Kata Sandi
                                        </MenuItem>
                                        <Divider />
                                        <MenuItem onClick={handleLogout}>
