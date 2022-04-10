@@ -14,8 +14,8 @@ export default function Register(props) {
    const [error, setError] = React.useState();
    const [data, setData] = React.useState({
       name: "",
-      email: "",
       phone_number: "",
+      email: "",
       password: "",
       password_confirmation: "",
    });
@@ -35,8 +35,8 @@ export default function Register(props) {
       setError(undefined);
       let formData = new FormData();
       formData.append("name", data.name);
-      formData.append("email", data.email);
       formData.append("phone_number", parseInt(data.phone_number));
+      formData.append("email", data.email);
       formData.append("password", data.password);
       formData.append("password_confirmation", data.password_confirmation);
       formData.append("role", "customer");
@@ -100,6 +100,31 @@ export default function Register(props) {
                   </FormControl>
                   <FormControl margin="normal" fullWidth>
                      <Typography variant="body2" fontWeight="bold" color="text.secondary">
+                        Nomor HP
+                     </Typography>
+                     <TextField
+                        margin="dense"
+                        name="phone_number"
+                        type="tel"
+                        size="small"
+                        inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                        InputProps={{
+                           startAdornment: <InputAdornment position="start">+62</InputAdornment>,
+                        }}
+                        onBlur={handleChange}
+                        error={error?.phone_number !== undefined ? true : false}
+                        required
+                        fullWidth
+                     />
+                     <Typography variant="caption" color="error">
+                        {Validation(error?.phone_number)}
+                     </Typography>
+                     <Typography variant="caption" color="text.secondary">
+                        Contoh: +62 81912345678
+                     </Typography>
+                  </FormControl>
+                  <FormControl margin="normal" fullWidth>
+                     <Typography variant="body2" fontWeight="bold" color="text.secondary">
                         Email
                      </Typography>
                      <TextField
@@ -117,28 +142,6 @@ export default function Register(props) {
                      </Typography>
                      <Typography variant="caption" color="text.secondary">
                         Contoh: email@zenitha.com
-                     </Typography>
-                  </FormControl>
-                  <FormControl margin="normal" fullWidth>
-                     <Typography variant="body2" fontWeight="bold" color="text.secondary">
-                        Nomor HP
-                     </Typography>
-                     <TextField
-                        margin="dense"
-                        name="phone_number"
-                        type="tel"
-                        size="small"
-                        inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
-                        onBlur={handleChange}
-                        error={error?.phone_number !== undefined ? true : false}
-                        required
-                        fullWidth
-                     />
-                     <Typography variant="caption" color="error">
-                        {Validation(error?.phone_number)}
-                     </Typography>
-                     <Typography variant="caption" color="text.secondary">
-                        Contoh: 081912345678
                      </Typography>
                   </FormControl>
                   <FormControl margin="normal" fullWidth>
