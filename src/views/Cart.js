@@ -277,15 +277,17 @@ export default function Cart(props) {
                      <Card>
                         <CardContent>
                            <Typography fontWeight="bold">Ringkasan Belanja</Typography>
-                           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2, mb: 0.5 }}>
+                           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
                               <Typography>Total Harga ({productQuantity} Barang)</Typography>
                               <Typography>{NumberFormat(productPrice)}</Typography>
                            </Box>
-                           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-                              <Typography>Total Diskon Barang</Typography>
-                              <Typography>-{NumberFormat(productDiscount)}</Typography>
-                           </Box>
-                           <Divider />
+                           {productDiscount !== 0 && (
+                              <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5 }}>
+                                 <Typography>Total Diskon Barang</Typography>
+                                 <Typography>-{NumberFormat(productDiscount)}</Typography>
+                              </Box>
+                           )}
+                           <Divider sx={{ pt: 2 }} />
                            <Box sx={{ display: "flex", justifyContent: "space-between", my: 2 }}>
                               <Typography fontWeight="bold">Total Harga</Typography>
                               <Typography fontWeight="bold">{NumberFormat(totalPrice)}</Typography>
