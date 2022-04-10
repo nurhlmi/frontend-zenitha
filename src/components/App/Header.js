@@ -32,6 +32,7 @@ import {
    LockOutlined,
    StorefrontOutlined,
    ShoppingBagOutlined,
+   EmailRounded,
 } from "@mui/icons-material";
 
 import { apiUrl } from "../../variable/Url";
@@ -56,6 +57,19 @@ export default function Header(props) {
    const token = localStorage.getItem("token");
    const [modal, setModal] = React.useState(false);
 
+   const [setting, setSetting] = React.useState();
+   const getSetting = async () => {
+      await axios
+         .get(`${apiUrl}/setting`)
+         .then((res) => {
+            console.log(res.data.data);
+            setSetting(res.data.data);
+         })
+         .catch((err) => {
+            console.log(err.response);
+         });
+   };
+
    const [category, setCategory] = React.useState([]);
    const getCategory = async () => {
       await axios
@@ -74,6 +88,7 @@ export default function Header(props) {
    };
 
    React.useEffect(() => {
+      getSetting();
       getCategory();
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
@@ -127,9 +142,8 @@ export default function Header(props) {
                }}
             >
                <Box sx={{ alignItems: "center" }}>
-                  {/* <EmailRounded fontSize="6px" /> */}
                   <Typography variant="body2" color="text.secondary">
-                     cs@zenitha.com
+                     {setting?.email}
                   </Typography>
                </Box>
                <Link component={RouterLink} to="/article-tutorial" underline="none" color="inherit">
@@ -145,7 +159,7 @@ export default function Header(props) {
                         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                            <Box sx={{ borderRadius: 1 }} component={RouterLink} to="/">
                               <Box sx={{ display: { xs: "none", md: "block" } }}>
-                                 <img alt="Logo" src="/assets/images/brands/zenitha.png" />
+                                 <img alt="Logo" src={setting?.logo_url} />
                               </Box>
                               <Box sx={{ display: { xs: "block", md: "none" }, pt: 1, mr: 1 }}>
                                  <img alt="Logo" src="/favicon.ico" />
