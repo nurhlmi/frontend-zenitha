@@ -84,7 +84,7 @@ export default function Cart(props) {
    const getPercent = (price, discount, discount_type) => {
       let output = null;
       if (discount_type === "rp") {
-         output = Math.floor((discount / price) * 100);
+         output = Math.round((discount / price) * 100);
       } else {
          output = discount;
       }
