@@ -55,7 +55,7 @@ export default function ProductDetail(props) {
             setData(value);
             setProduct(value.product);
             setQuantity(value.product.minimum_order);
-            getWishlist(auth.user.id, value.product.id);
+            auth.auth !== false && getWishlist(auth.user.id, value.product.id);
          })
          .catch((xhr) => {
             console.log(xhr.response);
@@ -135,29 +135,33 @@ export default function ProductDetail(props) {
          });
    };
    const handleWishlist = async (product_id) => {
-      let formData = new FormData();
-      formData.append("product_id", product_id);
-      await axios
-         .post(`${apiUrl}/user_wishlist/wishlist`, formData, {
-            headers: {
-               Authorization: "Bearer " + token,
-            },
-         })
-         .then((res) => {
-            // console.log(res.data.data);
-            if (res.data.data !== null) {
-               setWishlist(true);
-               setSnackbar(true);
-               setMessage(`Barang berhasil disimpan di Wishlist`);
-            } else {
-               setWishlist(false);
-               setSnackbar(true);
-               setMessage(`Barang telah dihapus dari Wishlist`);
-            }
-         })
-         .catch((xhr) => {
-            console.log(xhr.response);
-         });
+      if (auth.auth === true) {
+         let formData = new FormData();
+         formData.append("product_id", product_id);
+         await axios
+            .post(`${apiUrl}/user_wishlist/wishlist`, formData, {
+               headers: {
+                  Authorization: "Bearer " + token,
+               },
+            })
+            .then((res) => {
+               // console.log(res.data.data);
+               if (res.data.data !== null) {
+                  setWishlist(true);
+                  setSnackbar(true);
+                  setMessage(`Barang berhasil disimpan di Wishlist`);
+               } else {
+                  setWishlist(false);
+                  setSnackbar(true);
+                  setMessage(`Barang telah dihapus dari Wishlist`);
+               }
+            })
+            .catch((xhr) => {
+               console.log(xhr.response);
+            });
+      } else {
+         navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      }
    };
 
    const [variant, setVariant] = React.useState();
@@ -280,7 +284,7 @@ export default function ProductDetail(props) {
 
    return (
       <Container sx={{ flex: 1, mt: { xs: 1, sm: 0, lg: 4 } }}>
-         {data !== undefined && product !== undefined && wishlist !== undefined ? (
+         {data !== undefined && product !== undefined ? (
             <Grid container spacing={{ xs: 1, sm: 4 }}>
                <Grid item xs={12} lg={1} />
                <Grid item xs={12} sm={6} lg={5}>
