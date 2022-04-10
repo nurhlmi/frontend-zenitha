@@ -61,7 +61,7 @@ export default function Header(props) {
       await axios
          .get(`${apiUrl}/setting`)
          .then((res) => {
-            console.log(res.data.data);
+            // console.log(res.data.data);
             setSetting(res.data.data);
          })
          .catch((err) => {
