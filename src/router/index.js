@@ -18,6 +18,7 @@ import Products from "../views/Product/";
 import ProductDetail from "../views/Product/Detail";
 
 import Settings from "../views/Settings";
+import SettingProfile from "../views/Settings/Profile";
 import SettingAddress from "../views/Settings/Address";
 import SettingPassword from "../views/Settings/Password";
 
@@ -82,7 +83,7 @@ function Router() {
                path="/settings"
                element={
                   <Middleware.After>
-                     <App render={<Settings />} title="Pengaturan" />
+                     <App render={<Settings render={<SettingProfile />} route="profile" />} title="Biodata Diri" />
                   </Middleware.After>
                }
             />
@@ -90,7 +91,7 @@ function Router() {
                path="/settings/address"
                element={
                   <Middleware.After>
-                     <App render={<SettingAddress />} title="Daftar Alamat" />
+                     <App render={<Settings render={<SettingAddress />} route="address" />} title="Daftar Alamat" />
                   </Middleware.After>
                }
             />
@@ -98,7 +99,7 @@ function Router() {
                path="/settings/password"
                element={
                   <Middleware.After>
-                     <App render={<SettingPassword />} title="Ganti Password" />
+                     <App render={<Settings render={<SettingPassword />} route="password" />} title="Ubah Kata Sandi" />
                   </Middleware.After>
                }
             />

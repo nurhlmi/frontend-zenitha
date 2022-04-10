@@ -296,7 +296,7 @@ export default function Cart(props) {
                               variant="contained"
                               size="large"
                               component={RouterLink}
-                              to={address.length > 0 ? "/checkout" : "/settings/address"}
+                              to={address.length > 0 ? "/checkout" : `/settings/address?redirect=${encodeURIComponent("/checkout")}`}
                               fullWidth
                            >
                               Beli ({productQuantity})
