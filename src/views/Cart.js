@@ -8,8 +8,8 @@ import {
    Grid,
    ButtonGroup,
    Button,
-   FormControlLabel,
-   Checkbox,
+   // FormControlLabel,
+   // Checkbox,
    Card,
    CardContent,
    Tooltip,
@@ -20,16 +20,15 @@ import {
 } from "@mui/material";
 import { Add, Remove, Close, DeleteOutlineRounded, ShoppingCartOutlined } from "@mui/icons-material";
 
+import { useRecoilState } from "recoil";
+import { Link as RouterLink } from "react-router-dom";
+
 import { carts } from "../store/Carts";
 import { apiUrl } from "../variable/Url";
 import { NumberFormat } from "../components/Format";
-import { useRecoilState } from "recoil";
-import { authentication } from "../store/Authentication";
-import { Link as RouterLink } from "react-router-dom";
 
 export default function Cart(props) {
    const token = localStorage.getItem("token");
-   const [auth] = useRecoilState(authentication);
 
    const [data, setData] = React.useState();
    const [productPrice, setProductPrice] = React.useState(0);
@@ -51,15 +50,17 @@ export default function Cart(props) {
             let productquantity = 0;
             // eslint-disable-next-line array-callback-return
             res.data.data.map((value) => {
-               productprice += value.quantity * value.product_combination.price;
-               if (value.product_combination.product.discount !== null) {
-                  if (value.product_combination.product.discount_type === "rp") {
-                     productdiscount += value.quantity * value.product_combination.product.discount;
-                  } else {
-                     productdiscount += value.quantity * (value.product_combination.price * (value.product_combination.product.discount / 100));
+               if (value.product_combination.status === "active") {
+                  productprice += value.quantity * value.product_combination.price;
+                  if (value.product_combination.product.discount !== null) {
+                     if (value.product_combination.product.discount_type === "rp") {
+                        productdiscount += value.quantity * value.product_combination.product.discount;
+                     } else {
+                        productdiscount += value.quantity * (value.product_combination.price * (value.product_combination.product.discount / 100));
+                     }
                   }
+                  productquantity += value.quantity;
                }
-               productquantity += value.quantity;
             });
             setProductPrice(productprice);
             setProductDiscount(Math.round(productdiscount));
@@ -91,26 +92,8 @@ export default function Cart(props) {
       return output;
    };
 
-   const [address, setAddress] = React.useState();
-   const getAddress = async () => {
-      await axios
-         .get(`${apiUrl}/user/address/fetch`, {
-            params: {
-               user_id: auth.user.id,
-            },
-            headers: {
-               Authorization: "Bearer " + token,
-            },
-         })
-         .then((res) => {
-            // console.log(res.data.data);
-            setAddress(res.data.data);
-         });
-   };
-
    React.useEffect(() => {
       getData();
-      getAddress();
       window.scrollTo(0, 0);
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
@@ -182,22 +165,22 @@ export default function Cart(props) {
          <Typography variant="h6" fontWeight="bold" py={3}>
             Keranjang
          </Typography>
-         {data !== undefined && address !== undefined ? (
+         {data !== undefined ? (
             data.length > 0 ? (
                <Grid container spacing={{ xs: 1, sm: 4 }}>
                   <Grid item xs={12} md={7} lg={8} sx={{ mb: 4 }}>
-                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                     {/* <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <FormControlLabel control={<Checkbox size="small" checked disabled />} label="Pilih Semua" sx={{ ml: 0 }} />
-                        {/* <Typography fontWeight="bold" sx={{ cursor: "pointer" }}>
-                              Hapus
-                           </Typography> */}
-                     </Box>
+                        <Typography fontWeight="bold" sx={{ cursor: "pointer" }}>
+                           Hapus
+                        </Typography>
+                     </Box> */}
                      {data.map((value, index) => (
                         <Box key={index}>
-                           <Grid container alignItems="center" sx={{ borderTop: "4px solid #eee", mt: 1, pt: 2 }}>
-                              <Grid item>
-                                 <Checkbox size="small" checked disabled />
-                              </Grid>
+                           <Grid container sx={{ borderTop: "4px solid #eee", mb: 1, pt: 2 }}>
+                              {/* <Grid item>
+                                 <Checkbox size="small" checked={value.product_combination.status === "active"} disabled />
+                              </Grid> */}
                               <Grid item>
                                  <Box component={RouterLink} to={`/product/${value.product_combination.product_slug}`}>
                                     <img alt={value.product_name} src={value.product_image} width="80" />
@@ -243,11 +226,14 @@ export default function Cart(props) {
                                              : NumberFormat(value.product_combination.price)}
                                        </Typography>
                                     </Box>
+                                    <Typography variant="caption" color="error">
+                                       {value.product_combination.status === "not_active" && "Barang belum tersedia"}
+                                    </Typography>
                                  </Box>
                               </Grid>
                            </Grid>
                            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", py: 1 }}>
-                              <Tooltip title="Hapus">
+                              <Tooltip title="Hapus Barang">
                                  <IconButton onClick={() => handleDelete(value.id, value.quantity)}>
                                     <DeleteOutlineRounded />
                                  </IconButton>
@@ -257,14 +243,18 @@ export default function Cart(props) {
                                     aria-label="decrease"
                                     onClick={() => handleQuantity(value.id, value.quantity - 1, value.product_combination.stock, "decrease")}
                                     size="small"
+                                    disabled={value.product_combination.status === "not_active"}
                                  >
                                     <Remove fontSize="small" />
                                  </Button>
-                                 <Button size="small">{value.quantity}</Button>
+                                 <Button size="small" disabled={value.product_combination.status === "not_active"}>
+                                    {value.quantity}
+                                 </Button>
                                  <Button
                                     aria-label="increase"
                                     onClick={() => handleQuantity(value.id, value.quantity + 1, value.product_combination.stock, "increase")}
                                     size="small"
+                                    disabled={value.product_combination.status === "not_active"}
                                  >
                                     <Add fontSize="small" />
                                  </Button>
@@ -292,13 +282,7 @@ export default function Cart(props) {
                               <Typography fontWeight="bold">Total Harga</Typography>
                               <Typography fontWeight="bold">{NumberFormat(totalPrice)}</Typography>
                            </Box>
-                           <Button
-                              variant="contained"
-                              size="large"
-                              component={RouterLink}
-                              to={address.length > 0 ? "/checkout" : `/settings/address?redirect=${encodeURIComponent("/checkout")}`}
-                              fullWidth
-                           >
+                           <Button variant="contained" size="large" component={RouterLink} to={"/checkout"} disabled={totalPrice < 1} fullWidth>
                               Beli ({productQuantity})
                            </Button>
                         </CardContent>
