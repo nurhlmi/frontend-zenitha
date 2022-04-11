@@ -73,7 +73,7 @@ export default function Article(props) {
                                           {value.title}
                                        </Typography>
                                        <Typography variant="caption" wrap="nowrap" color="text.secondary" mb={1} sx={{ position: "absolute", bottom: "5px" }}>
-                                          {TimeAgo("2022-03-26 15:00:00", "day")}
+                                          {TimeAgo(value.created_at, "day")}
                                        </Typography>
                                     </CardContent>
                                  </CardActionArea>
