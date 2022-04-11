@@ -34,7 +34,7 @@ export default function ArticleDetail(props) {
          {data !== undefined ? (
             <Grid container>
                <Grid item sm={1} md={2} />
-               <Grid item sm={10} md={8}>
+               <Grid item xs sm={10} md={8}>
                   <Box sx={{ mt: 3, mb: 2 }}>
                      <Typography variant="h5" fontWeight="bold" mb={1}>
                         {data.title}
