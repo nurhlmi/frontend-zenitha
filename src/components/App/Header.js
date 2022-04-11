@@ -260,7 +260,7 @@ export default function Header(props) {
                                        </IconButton>
                                     </Tooltip>
                                     <Box sx={{ display: { xs: "none", sm: "inline" } }}>
-                                       <Tooltip title="Pesanan">
+                                       <Tooltip title="Transaksi">
                                           <IconButton component={RouterLink} to="/order">
                                              <ListAltRounded fontSize="small" />
                                           </IconButton>
@@ -333,7 +333,7 @@ export default function Header(props) {
                                              <ListItemIcon sx={{ mr: 0 }}>
                                                 <ListAltRounded fontSize="small" />
                                              </ListItemIcon>
-                                             Pesanan
+                                             Transaksi
                                           </MenuItem>
                                           <MenuItem component={RouterLink} to="/category">
                                              <ListItemIcon sx={{ mr: 0 }}>

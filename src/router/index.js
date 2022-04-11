@@ -31,7 +31,7 @@ import TutorialDetail from "../views/Article/TutorialDetail";
 import Wishlist from "../views/Wishlist";
 import Cart from "../views/Cart";
 import Order from "../views/Order";
-// import OrderDetail from "../views/Order/Detail";
+import OrderDetail from "../views/Order/Detail";
 
 import Checkout from "../views/Checkout";
 // import Payment from "../views/Payment";
@@ -132,7 +132,15 @@ function Router() {
                path="/order"
                element={
                   <Middleware.After>
-                     <App render={<Order />} title="Pesanan" />
+                     <App render={<Order />} title="Transaksi" />
+                  </Middleware.After>
+               }
+            />
+            <Route
+               path="/order/:id"
+               element={
+                  <Middleware.After>
+                     <App render={<OrderDetail />} title="Detail Transaksi" />
                   </Middleware.After>
                }
             />
