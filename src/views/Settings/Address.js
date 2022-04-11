@@ -12,6 +12,7 @@ import {
    Grid,
    IconButton,
    InputAdornment,
+   MenuItem,
    Snackbar,
    TextField,
    Tooltip,
@@ -53,13 +54,82 @@ export default function Address(props) {
          });
    };
 
+   const [province, setProvince] = React.useState([]);
+   const getProvince = async () => {
+      await axios
+         .get(`${apiUrl}/region/province`, {
+            headers: {
+               Authorization: "Bearer " + token,
+            },
+         })
+         .then((res) => {
+            // console.log(res.data.data);
+            setProvince(res.data.data);
+         })
+         .catch((xhr) => {
+            console.log(xhr.response);
+         });
+   };
+
+   const [city, setCity] = React.useState([]);
+   const getCity = async (province_id) => {
+      await axios
+         .get(`${apiUrl}/region/city`, {
+            params: {
+               province_id: province_id,
+            },
+            headers: {
+               Authorization: "Bearer " + token,
+            },
+         })
+         .then((res) => {
+            // console.log(res.data.data);
+            setCity(res.data.data);
+         })
+         .catch((xhr) => {
+            console.log(xhr.response);
+         });
+   };
+
+   const [district, setDistrict] = React.useState([]);
+   const getDistrict = async (city_id) => {
+      await axios
+         .get(`${apiUrl}/region/district`, {
+            params: {
+               city_id: city_id,
+            },
+            headers: {
+               Authorization: "Bearer " + token,
+            },
+         })
+         .then((res) => {
+            // console.log(res.data.data);
+            setDistrict(res.data.data);
+         })
+         .catch((xhr) => {
+            console.log(xhr.response);
+         });
+   };
+
    React.useEffect(() => {
       getAddress();
+      getProvince();
       window.scrollTo(0, 0);
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
 
    const handleChange = (e) => {
+      if (e.target.name === "province_id") {
+         data.city_id = "none";
+         data.district_id = "none";
+         setCity([]);
+         setDistrict([]);
+         getCity(e.target.value);
+      } else if (e.target.name === "city_id") {
+         data.district_id = "none";
+         setDistrict([]);
+         getDistrict(e.target.value);
+      }
       setData({
          ...data,
          [e.target.name]: e.target.value,
@@ -76,9 +146,9 @@ export default function Address(props) {
       label: "",
       recipients_name: "",
       phone_number: "",
-      province_id: "",
-      city_id: "",
-      district_id: "",
+      province_id: "none",
+      city_id: "none",
+      district_id: "none",
       address: "",
       postal_code: "",
    });
@@ -181,15 +251,17 @@ export default function Address(props) {
 
    const handleCreate = () => {
       setDialog(true);
+      setCity([]);
+      setDistrict([]);
       setData({
          type: "create",
          id: "",
          label: "",
          recipients_name: "",
          phone_number: "",
-         province_id: "",
-         city_id: "",
-         district_id: "",
+         province_id: "none",
+         city_id: "none",
+         district_id: "none",
          address: "",
          postal_code: "",
       });
@@ -197,6 +269,8 @@ export default function Address(props) {
 
    const handleEdit = (value) => {
       setDialog(true);
+      getCity(value.province.id, value.city.id);
+      getDistrict(value.city.id, value.district.id);
       setData({
          type: "edit",
          id: value.id,
@@ -234,7 +308,7 @@ export default function Address(props) {
 
    return (
       <React.Fragment>
-         {address !== undefined ? (
+         {address !== undefined && province.length > 0 ? (
             address.length > 0 ? (
                <React.Fragment>
                   <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
@@ -384,7 +458,18 @@ export default function Address(props) {
                               onChange={handleChange}
                               error={error?.province_id !== undefined ? true : false}
                               helperText={Validation(error?.province_id)}
-                           />
+                              select
+                              defaultValue="none"
+                           >
+                              <MenuItem value="none" disabled selected>
+                                 Pilih Provinsi
+                              </MenuItem>
+                              {province.map((value, index) => (
+                                 <MenuItem value={value.id} key={index}>
+                                    {value.province}
+                                 </MenuItem>
+                              ))}
+                           </TextField>
                         </FormControl>
                         <FormControl margin="dense" fullWidth>
                            <Typography variant="body2" fontWeight="bold" color="text.secondary">
@@ -398,7 +483,18 @@ export default function Address(props) {
                               onChange={handleChange}
                               error={error?.city_id !== undefined ? true : false}
                               helperText={Validation(error?.city_id)}
-                           />
+                              select
+                              defaultValue="none"
+                           >
+                              <MenuItem value="none" disabled selected>
+                                 Pilih Kabupaten/Kota
+                              </MenuItem>
+                              {city.map((value, index) => (
+                                 <MenuItem value={value.id} key={index}>
+                                    {value.type} {value.city}
+                                 </MenuItem>
+                              ))}
+                           </TextField>
                         </FormControl>
                         <FormControl margin="dense" fullWidth>
                            <Typography variant="body2" fontWeight="bold" color="text.secondary">
@@ -412,7 +508,18 @@ export default function Address(props) {
                               onChange={handleChange}
                               error={error?.district_id !== undefined ? true : false}
                               helperText={Validation(error?.district_id)}
-                           />
+                              select
+                              defaultValue="none"
+                           >
+                              <MenuItem value="none" disabled selected>
+                                 Pilih Kecamatan
+                              </MenuItem>
+                              {district.map((value, index) => (
+                                 <MenuItem value={value.id} key={index}>
+                                    {value.district}
+                                 </MenuItem>
+                              ))}
+                           </TextField>
                         </FormControl>
                         <FormControl margin="dense" fullWidth>
                            <Typography variant="body2" fontWeight="bold" color="text.secondary">
