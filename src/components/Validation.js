@@ -31,9 +31,15 @@ function Validation(error) {
          output = "Masukkan nama penerima.";
       } else if (error[0] === "The province id field is required.") {
          output = "Pilih provinsi.";
+      } else if (error[0] === "The selected province id is invalid.") {
+         output = "Pilih provinsi.";
       } else if (error[0] === "The city id field is required.") {
          output = "Pilih kabupaten/kota.";
+      } else if (error[0] === "The selected city id is invalid.") {
+         output = "Pilih kabupaten/kota.";
       } else if (error[0] === "The district id field is required.") {
+         output = "Pilih kecamatan.";
+      } else if (error[0] === "The selected district id is invalid.") {
          output = "Pilih kecamatan.";
       } else if (error[0] === "The postal code field is required.") {
          output = "Masukkan kode pos.";
