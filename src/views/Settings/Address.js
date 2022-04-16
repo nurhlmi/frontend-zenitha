@@ -18,7 +18,7 @@ import {
    Tooltip,
    Typography,
 } from "@mui/material";
-import { Close, CloseRounded, DeleteOutline, EditOutlined, ErrorOutlineRounded, StorefrontOutlined } from "@mui/icons-material";
+import { Close, CloseRounded, DeleteOutline, EditOutlined, StorefrontOutlined } from "@mui/icons-material";
 import { LoadingButton } from "@mui/lab";
 
 import { apiUrl } from "../../variable/Url";
@@ -295,15 +295,9 @@ export default function Address(props) {
       });
    };
 
-   const [dialog, setDialog] = React.useState(false);
+   const [dialog, setDialog] = React.useState(redirect !== false);
    const handleDialog = () => {
       setDialog(!dialog);
-   };
-
-   const [dialogNotice, setDialogNotice] = React.useState(redirect !== false);
-   const handleDialogNotice = () => {
-      setDialog(!dialog);
-      setDialogNotice(!dialogNotice);
    };
 
    return (
@@ -367,25 +361,6 @@ export default function Address(props) {
                <CircularProgress />
             </Box>
          )}
-         <Dialog open={dialogNotice} onClose={handleDialogNotice} maxWidth="xs" fullWidth>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", py: 1, pl: 3, pr: 1 }}>
-               <Typography variant="subtitle1" fontWeight="bold">
-                  Pengumuman
-               </Typography>
-               <IconButton onClick={handleDialogNotice}>
-                  <CloseRounded />
-               </IconButton>
-            </Box>
-            <DialogContent dividers>
-               <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", mt: 3, mb: 6 }}>
-                  <ErrorOutlineRounded sx={{ fontSize: "50px" }} />
-                  <Typography mt={1}>Tambah alamat terlebih dahulu</Typography>
-               </Box>
-               <LoadingButton variant="contained" onClick={handleDialogNotice} fullWidth>
-                  Tambah Alamat
-               </LoadingButton>
-            </DialogContent>
-         </Dialog>
          <Dialog open={dialog} onClose={handleDialog} maxWidth="xs" fullWidth>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", py: 1, pl: 3, pr: 1 }}>
                <Typography variant="subtitle1" fontWeight="bold">
