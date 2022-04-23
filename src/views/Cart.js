@@ -192,8 +192,14 @@ export default function Cart(props) {
                                        <Typography noWrap>{value.product_name}</Typography>
                                     </Link>
                                     {value.product_combination.combination_string !== null && (
-                                       <Typography variant="caption" color="text.secondary" noWrap>
+                                       <Typography variant="caption" mr={1}>
                                           {value.product_combination.combination_string.replaceAll("-", ", ")}
+                                       </Typography>
+                                    )}
+                                    {value.product_combination.product.preorder === 1 && (
+                                       <Typography variant="caption" color="text.secondary">
+                                          (Pre-Order {value.product_combination.product.duration}&nbsp;
+                                          {value.product_combination.product.duration_unit === "day" ? "Hari" : "Minggu"})
                                        </Typography>
                                     )}
                                     <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
