@@ -402,7 +402,7 @@ export default function ProductDetail(props) {
                         {product.preorder !== 0 && (
                            <Grid item xs={6}>
                               <LoadingButton variant="outlined" onClick={() => handleCart(true)} disabled={disabled} fullWidth>
-                                 Pre Order
+                                 Pre-Order
                               </LoadingButton>
                            </Grid>
                         )}
@@ -457,7 +457,7 @@ export default function ProductDetail(props) {
                            {product.preorder !== 0 && (
                               <tr>
                                  <td>
-                                    <Typography color="text.secondary">Waktu Preorder</Typography>
+                                    <Typography color="text.secondary">Waktu Pre-Order</Typography>
                                  </td>
                                  <td>
                                     {product.duration} {product.duration_unit === "day" && "Hari"}
