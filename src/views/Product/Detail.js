@@ -30,6 +30,7 @@ import { authentication } from "../../store/Authentication";
 import { carts } from "../../store/Carts";
 import { apiUrl } from "../../variable/Url";
 import { NumberFormat } from "../../components/Format";
+import { YoutubeParser } from "../../components/YoutubeParser";
 
 export default function ProductDetail(props) {
    const { slug } = useParams();
@@ -488,6 +489,17 @@ export default function ProductDetail(props) {
                            __html: product.description,
                         }}
                      />
+                     {product.video_url !== null && (
+                        <iframe
+                           width="100%"
+                           height="450"
+                           src={`https://www.youtube.com/embed/${YoutubeParser(product.video_url)}`}
+                           title={product.product_name}
+                           frameBorder="0"
+                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                           allowFullScreen
+                        />
+                     )}
                   </Box>
                </Grid>
             </Grid>
