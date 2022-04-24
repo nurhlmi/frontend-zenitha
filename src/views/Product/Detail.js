@@ -455,6 +455,14 @@ export default function ProductDetail(props) {
                                  {product.height} {product.size_unit}
                               </td>
                            </tr>
+                           {data.sku !== null && (
+                              <tr>
+                                 <td>
+                                    <Typography color="text.secondary">SKU</Typography>
+                                 </td>
+                                 <td>{data.sku}</td>
+                              </tr>
+                           )}
                            {product.preorder !== 0 && (
                               <tr>
                                  <td>
