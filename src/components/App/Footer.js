@@ -61,41 +61,39 @@ export default function Footer(props) {
                      </Typography>
                   )}
                </Grid>
-               {setting?.fb_status !== 0 && setting?.ig_status !== 0 && setting?.tw_status !== 0 && setting?.yt_status !== 0 && (
-                  <Grid item xs={12} sm={6} lg={3} sx={{ mb: 3 }}>
-                     <Typography variant="h6">Media Sosial</Typography>
-                     <Box sx={{ display: "flex" }}>
-                        {setting?.fb_status !== 0 && (
-                           <Tooltip title="Facebook">
-                              <IconButton component={Link} href={setting?.fb} target="_blank">
-                                 <FacebookRounded fontSize="small" />
-                              </IconButton>
-                           </Tooltip>
-                        )}
-                        {setting?.ig_status !== 0 && (
-                           <Tooltip title="Instagram">
-                              <IconButton component={Link} href={setting?.ig} target="_blank">
-                                 <Instagram fontSize="small" />
-                              </IconButton>
-                           </Tooltip>
-                        )}
-                        {setting?.tw_status !== 0 && (
-                           <Tooltip title="Twitter">
-                              <IconButton component={Link} href={setting?.tw} target="_blank">
-                                 <Twitter fontSize="small" />
-                              </IconButton>
-                           </Tooltip>
-                        )}
-                        {setting?.yt_status !== 0 && (
-                           <Tooltip title="YouTube">
-                              <IconButton component={Link} href={setting?.yt} target="_blank">
-                                 <YouTube fontSize="small" />
-                              </IconButton>
-                           </Tooltip>
-                        )}
-                     </Box>
-                  </Grid>
-               )}
+               <Grid item xs={12} sm={6} lg={3} sx={{ mb: 3 }}>
+                  <Typography variant="h6">Media Sosial</Typography>
+                  <Box sx={{ display: "flex" }}>
+                     {setting?.fb_status !== 0 && (
+                        <Tooltip title="Facebook">
+                           <IconButton component={Link} href={setting?.fb} target="_blank">
+                              <FacebookRounded fontSize="small" />
+                           </IconButton>
+                        </Tooltip>
+                     )}
+                     {setting?.ig_status !== 0 && (
+                        <Tooltip title="Instagram">
+                           <IconButton component={Link} href={setting?.ig} target="_blank">
+                              <Instagram fontSize="small" />
+                           </IconButton>
+                        </Tooltip>
+                     )}
+                     {setting?.tw_status !== 0 && (
+                        <Tooltip title="Twitter">
+                           <IconButton component={Link} href={setting?.tw} target="_blank">
+                              <Twitter fontSize="small" />
+                           </IconButton>
+                        </Tooltip>
+                     )}
+                     {setting?.yt_status !== 0 && (
+                        <Tooltip title="YouTube">
+                           <IconButton component={Link} href={setting?.yt} target="_blank">
+                              <YouTube fontSize="small" />
+                           </IconButton>
+                        </Tooltip>
+                     )}
+                  </Box>
+               </Grid>
                {category.length > 0 && (
                   <Grid item xs={12} sm={6} lg={3} sx={{ mb: 3 }}>
                      <Typography variant="h6">Kategori</Typography>
