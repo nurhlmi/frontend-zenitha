@@ -148,4 +148,14 @@ function NumberFormat(e) {
    return prefix + string;
 }
 
-export { DateFormat, TimeFormat, Duration, TimeAgo, NumberFormat };
+function Discount(price, discount, discount_type) {
+   let output = null;
+   if (discount_type === "rp") {
+      output = price - discount;
+   } else {
+      output = price - (price * discount) / 100;
+   }
+   return output;
+}
+
+export { DateFormat, TimeFormat, Duration, TimeAgo, NumberFormat, Discount };
