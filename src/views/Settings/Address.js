@@ -5,10 +5,13 @@ import {
    Button,
    Card,
    CardContent,
+   Checkbox,
    CircularProgress,
    Dialog,
    DialogContent,
    FormControl,
+   FormControlLabel,
+   FormGroup,
    Grid,
    IconButton,
    InputAdornment,
@@ -130,10 +133,17 @@ export default function Address(props) {
          setDistrict([]);
          getDistrict(e.target.value);
       }
-      setData({
-         ...data,
-         [e.target.name]: e.target.value,
-      });
+      if (e.target.name === "type_address") {
+         setData({
+            ...data,
+            [e.target.name]: e.target.checked === true ? "alone" : "receiver",
+         });
+      } else {
+         setData({
+            ...data,
+            [e.target.name]: e.target.value,
+         });
+      }
       setError({
          ...error,
          [e.target.name]: undefined,
@@ -149,8 +159,9 @@ export default function Address(props) {
       province_id: "none",
       city_id: "none",
       district_id: "none",
-      address: "",
       postal_code: "",
+      address: "",
+      type_address: "receiver",
    });
    const [error, setError] = React.useState();
    const [loading, setLoading] = React.useState(false);
@@ -158,7 +169,7 @@ export default function Address(props) {
    const [message, setMessage] = React.useState();
    const handleSubmit = async (e) => {
       e.preventDefault();
-      setLoading(true);
+      // setLoading(true);
       setError(undefined);
       if (data.type === "create") {
          let formData = new FormData();
@@ -169,8 +180,10 @@ export default function Address(props) {
          formData.append("province_id", data.province_id);
          formData.append("city_id", data.city_id);
          formData.append("district_id", data.district_id);
-         formData.append("address", data.address);
          formData.append("postal_code", data.postal_code);
+         formData.append("address", data.address);
+         formData.append("type", data.type_address);
+         // console.log(Object.fromEntries(formData));
          await axios
             .post(`${apiUrl}/user/address/create`, formData, {
                headers: {
@@ -202,8 +215,9 @@ export default function Address(props) {
                   province_id: data.province_id,
                   city_id: data.city_id,
                   district_id: data.district_id,
-                  address: data.address,
                   postal_code: data.postal_code,
+                  address: data.address,
+                  type: data.type_address,
                },
                {
                   headers: {
@@ -251,6 +265,7 @@ export default function Address(props) {
 
    const handleCreate = () => {
       setDialog(true);
+      setError(undefined);
       setCity([]);
       setDistrict([]);
       setData({
@@ -262,13 +277,15 @@ export default function Address(props) {
          province_id: "none",
          city_id: "none",
          district_id: "none",
-         address: "",
          postal_code: "",
+         address: "",
+         type_address: "receiver",
       });
    };
 
    const handleEdit = (value) => {
       setDialog(true);
+      setError(undefined);
       getCity(value.province.id, value.city.id);
       getDistrict(value.city.id, value.district.id);
       setData({
@@ -280,8 +297,9 @@ export default function Address(props) {
          province_id: value.province.id,
          city_id: value.city.id,
          district_id: value.district.id,
-         address: value.address,
          postal_code: value.postal_code,
+         address: value.address,
+         type_address: value.type,
       });
    };
 
@@ -527,6 +545,19 @@ export default function Address(props) {
                               rows={4}
                            />
                         </FormControl>
+                        <FormGroup>
+                           <FormControlLabel
+                              control={
+                                 <Checkbox
+                                    name="type_address"
+                                    value={data.type_address}
+                                    checked={data.type_address === "alone" ? true : false}
+                                    onChange={handleChange}
+                                 />
+                              }
+                              label={<Typography color="text.secondary">Tandai sebagai alamat saya pribadi</Typography>}
+                           />
+                        </FormGroup>
                      </React.Fragment>
                   ) : (
                      <Box sx={{ my: 2 }}>
