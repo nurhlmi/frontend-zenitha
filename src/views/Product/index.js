@@ -6,7 +6,7 @@ import axios from "axios";
 import { apiUrl } from "../../variable/Url";
 import { ProductCard } from "../../components/Card";
 
-export default function Wishlist(props) {
+export default function Products(props) {
    const [page, setPage] = useState(1);
    const [data, setData] = useState();
    const getData = async () => {
