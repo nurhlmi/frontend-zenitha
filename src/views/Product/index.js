@@ -1,79 +1,87 @@
-import React from "react";
-import { Container, Typography, Breadcrumbs, Link, Grid } from "@mui/material";
-import { NavigateNext } from "@mui/icons-material";
-import { Link as RouterLink } from "react-router-dom";
+import React, { Fragment, useEffect, useState } from "react";
+import { Container, Box, Typography, Grid, CircularProgress, Pagination } from "@mui/material";
+import { LocalMallOutlined } from "@mui/icons-material";
 
+import axios from "axios";
+import { apiUrl } from "../../variable/Url";
 import { ProductCard } from "../../components/Card";
 
-export default function Products(props) {
-   const [products] = React.useState([
-      {
-         name: "Ummi 11",
-         slug: "ummi-11",
-         image: "image 8.png",
-         price: "350.000",
-         discount: "30%",
-         discount_price: "219.000",
-      },
-      {
-         name: "Long Blouse Adella 04",
-         slug: "long-blouse-adella-04",
-         image: "image 12.png",
-         price: "159.000",
-         discount: "20%",
-         discount_price: "127.000",
-      },
-      {
-         name: "Blouse Lavina 08",
-         slug: "blouse-lavina-08",
-         image: "image 13.png",
-         price: "149.000",
-         discount: "20%",
-         discount_price: "119.000",
-      },
-      {
-         name: "Gamis Kids Anissa 11",
-         slug: "gamis-kids-anissa-11",
-         image: "image 10.png",
-         price: "269.000",
-         discount: null,
-         discount_price: null,
-      },
-      {
-         name: "Znk 245",
-         slug: "znk-245",
-         image: "image 14.png",
-         price: "117.000",
-         discount: "20%",
-         discount_price: "82.000",
-      },
-   ]);
-   React.useEffect(() => {
+export default function Wishlist(props) {
+   const [page, setPage] = useState(1);
+   const [data, setData] = useState();
+   const getData = async () => {
+      await axios
+         .get(`${apiUrl}/product/fetch`, {
+            params: {
+               page: page,
+               limit: 10,
+            },
+         })
+         .then((res) => {
+            // console.log(res.data.data);
+            setData(res.data.data);
+         });
+   };
+
+   useEffect(() => {
+      getData();
       window.scrollTo(0, 0);
-   }, []);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [page]);
+
+   const handleChangePage = (event, value) => {
+      if (value !== page) {
+         setData(undefined);
+         setPage(value);
+      }
+   };
+
    return (
       <Container sx={{ flex: 1 }}>
-         <Breadcrumbs separator={<NavigateNext fontSize="small" />} aria-label="breadcrumb" sx={{ py: 3 }}>
-            <Link underline="hover" color="inherit" component={RouterLink} to="/products">
-               Produk
-            </Link>
-            <Typography color="text.primary">Semua Kategori</Typography>
-         </Breadcrumbs>
-         <Grid container spacing={{ xs: 1, sm: 2 }}>
-            {products.map((value, index) => (
-               <Grid item xs={6} sm={4} md={3} lg={2.4} key={index}>
-                  <ProductCard
-                     key={index}
-                     name={value.name}
-                     slug={value.slug}
-                     image={value.image}
-                     price={value.price}
-                     discount={value.discount}
-                     discount_price={value.discount_price}
-                  />
-               </Grid>
-            ))}
-         </Grid>
+         <Typography variant="h6" fontWeight="bold" py={3}>
+            Semua Produk
+         </Typography>
+         {data !== undefined ? (
+            data.data.length > 0 ? (
+               <Fragment>
+                  <Grid container spacing={{ xs: 1, sm: 2 }}>
+                     {data.data.map((value, index) => (
+                        <Grid item xs={6} sm={4} md={3} lg={2.4} key={index}>
+                           <ProductCard
+                              key={index}
+                              name={value.product_name}
+                              slug={value.main_product.product_slug}
+                              image={value.image}
+                              price={value.price}
+                              discount={value.discount}
+                              discount_type={value.discount_type}
+                           />
+                        </Grid>
+                     ))}
+                  </Grid>
+                  <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+                     <Pagination
+                        component="div"
+                        page={page}
+                        count={data.meta.last_page}
+                        onChange={handleChangePage}
+                        siblingCount={0}
+                        showFirstButton
+                        showLastButton
+                     />
+                  </Box>
+               </Fragment>
+            ) : (
+               <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", height: "60vh", color: "text.secondary" }}>
+                  <LocalMallOutlined fontSize="large" />
+                  <Typography mt={1}>Belum ada produk terbaru</Typography>
+               </Box>
+            )
+         ) : (
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>
+               <CircularProgress />
+            </Box>
+         )}
       </Container>
    );
 }
