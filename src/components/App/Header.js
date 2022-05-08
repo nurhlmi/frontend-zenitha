@@ -39,6 +39,7 @@ import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
 import { authentication } from "../../store/Authentication";
 import { carts } from "../../store/Carts";
+import { search } from "../../store/Search";
 
 export default function Header(props) {
    const [anchorEl, setAnchorEl] = React.useState(null);
@@ -92,14 +93,15 @@ export default function Header(props) {
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
 
+   const [searchProduct, setSearchProduct] = useRecoilState(search);
+   const [input, setInput] = React.useState(searchProduct);
    const handleChange = (e) => {
-      setSearch(e.target.value);
+      setInput(e.target.value);
    };
-
-   const [search, setSearch] = React.useState();
    const handleSearch = (e) => {
       e.preventDefault();
-      search !== undefined && search !== "" && navigate(`/search?q=${search}`);
+      setSearchProduct(input);
+      input !== undefined && input !== null && input !== "" && navigate(`/search?q=${input}`);
    };
 
    const [backdrop, setBackdrop] = React.useState(false);
@@ -230,6 +232,7 @@ export default function Header(props) {
                            >
                               <InputBase
                                  sx={{ ml: 1, flex: 1, fontSize: "13px" }}
+                                 value={input}
                                  onChange={handleChange}
                                  placeholder="Cari busana"
                                  inputProps={{ "aria-label": "cari" }}
