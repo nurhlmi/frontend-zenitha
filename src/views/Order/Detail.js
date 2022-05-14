@@ -26,7 +26,7 @@ export default function OrderDetail(props) {
             },
          })
          .then((res) => {
-            console.log(res.data.data);
+            // console.log(res.data.data);
             setData(res.data.data);
             let quantity = 0;
             let price = 0;
