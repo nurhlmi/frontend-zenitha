@@ -34,7 +34,7 @@ import Order from "../views/Order";
 import OrderDetail from "../views/Order/Detail";
 
 import Checkout from "../views/Checkout";
-// import Payment from "../views/Payment";
+import Payment from "../views/Payment";
 
 function Router() {
    return (
@@ -125,6 +125,14 @@ function Router() {
                element={
                   <Middleware.After>
                      <App render={<Checkout />} title="Checkout" />
+                  </Middleware.After>
+               }
+            />
+            <Route
+               path="/payment/:id"
+               element={
+                  <Middleware.After>
+                     <App render={<Payment />} title="Status Pembayaran" />
                   </Middleware.After>
                }
             />
