@@ -24,12 +24,16 @@ import { apiUrl } from "../../variable/Url";
 import { DateFormat, NumberFormat } from "../../components/Format";
 import { Link as RouterLink } from "react-router-dom";
 import { Status } from "../../components/Status";
+import { authentication } from "../../store/Authentication";
+import { useRecoilState } from "recoil";
 
 export default function Order(props) {
    const token = localStorage.getItem("token");
+   const [auth] = useRecoilState(authentication);
 
    const [data, setData] = React.useState();
    const [params, setParams] = React.useState({
+      user_id: auth.user.id,
       limit_page: 1,
    });
    const getData = async () => {
@@ -113,7 +117,7 @@ export default function Order(props) {
                                           <Typography variant="caption" mr={2}>
                                              {DateFormat(value.created_at)}
                                           </Typography>
-                                          <Chip label={Status(value.status)} size="small" variant="outlined" />
+                                          <Chip label={Status(value.no_rek === null ? "pending_cod" : value.status)} size="small" variant="outlined" />
                                        </Box>
                                        <Grid container>
                                           <Grid item>
@@ -138,7 +142,7 @@ export default function Order(props) {
                                              <Box sx={{ textAlign: "right" }}>
                                                 <Typography variant="body2">Total Belanja</Typography>
                                                 <Typography variant="body2" fontWeight="bold" mb={2}>
-                                                   {NumberFormat(value.total_price)}
+                                                   {NumberFormat(value.transaction_product.price)}
                                                 </Typography>
                                              </Box>
                                           </Grid>
