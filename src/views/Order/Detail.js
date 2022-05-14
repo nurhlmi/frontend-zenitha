@@ -1,16 +1,19 @@
 import React from "react";
 import axios from "axios";
 import { Container, Box, Typography, CircularProgress, CardContent, Card, Grid, Button, Tooltip, IconButton } from "@mui/material";
+import { ArrowBack } from "@mui/icons-material";
 
 import { apiUrl } from "../../variable/Url";
 import { DateFormat, TimeFormat, NumberFormat } from "../../components/Format";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import { Status } from "../../components/Status";
-import { ArrowBack } from "@mui/icons-material";
+import { authentication } from "../../store/Authentication";
+import { useRecoilState } from "recoil";
 
 export default function OrderDetail(props) {
    const { id } = useParams();
    const token = localStorage.getItem("token");
+   const [auth] = useRecoilState(authentication);
 
    const [data, setData] = React.useState();
    const [totalQuantity, setTotalQuantity] = React.useState(0);
@@ -23,14 +26,14 @@ export default function OrderDetail(props) {
             },
          })
          .then((res) => {
-            // console.log(res.data.data);
+            console.log(res.data.data);
             setData(res.data.data);
             let quantity = 0;
             let price = 0;
             // eslint-disable-next-line array-callback-return
             res.data.data.transaction_product.map((value) => {
                quantity = quantity + value.quantity;
-               price = price + (value.price - value.discount);
+               price = price + (value.price - value.discount_product - value.discount_group - value.discount_customer);
             });
             setTotalQuantity(quantity);
             setTotalPrice(price);
@@ -65,13 +68,29 @@ export default function OrderDetail(props) {
                   <Card>
                      <CardContent>
                         <Box sx={{ borderBottom: "5px solid #e0e0e0", pb: 2, mb: 3 }}>
-                           <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #e0e0e0", pb: 2, mb: 2 }}>
-                              <Typography variant="body2" fontWeight="bold" gutterBottom>
-                                 {Status(data.status)}
-                              </Typography>
-                              <Typography variant="body2" fontWeight="bold">
-                                 Lihat Detail
-                              </Typography>
+                           <Box sx={{ borderBottom: "1px dashed #e0e0e0", pb: 2, mb: 2 }}>
+                              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                                 <Typography variant="body2" fontWeight="bold" gutterBottom>
+                                    {Status(data.payment_method === "cod" ? "pending_cod" : data.status)}
+                                 </Typography>
+                                 {data.number_resi !== null && (
+                                    <Typography variant="body2" fontWeight="bold">
+                                       Lihat Detail
+                                    </Typography>
+                                 )}
+                              </Box>
+                              {data.status === "pending" &&
+                                 data.payment_method !== "cod" &&
+                                 data.payment.map((value, index) => (
+                                    <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }} key={index}>
+                                       <Typography variant="body2" color="text.secondary">
+                                          Pembayaran
+                                       </Typography>
+                                       <Typography variant="body2" color="text.secondary" component={RouterLink} to={`/payment/${value.id}`}>
+                                          Cek Status Pembayaran
+                                       </Typography>
+                                    </Box>
+                                 ))}
                            </Box>
                            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                               <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -103,15 +122,40 @@ export default function OrderDetail(props) {
                                           <Box sx={{ px: 2 }}>
                                              <Typography variant="body2">{value.product_name}</Typography>
                                              <Typography variant="caption" color="text.secondary">
-                                                {value.quantity} x {NumberFormat(value.price - value.discount)}
+                                                {/* {value.quantity} x {NumberFormat(value.price - value.discount)} */}
+                                                {value.quantity} x {NumberFormat(value.price - value.discount_product)}
                                              </Typography>
+                                             <Box sx={{ my: 1 }}>
+                                                {value.discount_group !== 0 && (
+                                                   <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                                                      <Typography variant="caption" color="text.secondary">
+                                                         Diskon {auth.user.role}
+                                                      </Typography>
+                                                      <Typography variant="caption" color="text.secondary">
+                                                         -{NumberFormat(value.discount_group)}
+                                                      </Typography>
+                                                   </Box>
+                                                )}
+                                                {value.discount_customer !== 0 && (
+                                                   <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5 }}>
+                                                      <Typography variant="caption" color="text.secondary">
+                                                         Diskon pelanggan
+                                                      </Typography>
+                                                      <Typography variant="caption" color="text.secondary">
+                                                         -{NumberFormat(value.discount_customer)}
+                                                      </Typography>
+                                                   </Box>
+                                                )}
+                                             </Box>
                                           </Box>
                                        </Grid>
                                        <Grid item>
                                           <Box sx={{ pl: 3, borderLeft: "1px dashed #e0e0e0", textAlign: "right" }}>
                                              <Typography variant="body2">Total Harga</Typography>
                                              <Typography variant="body2" fontWeight="bold" mb={2}>
-                                                {NumberFormat((value.price - value.discount) * value.quantity)}
+                                                {NumberFormat(
+                                                   (value.price - value.discount_product - value.discount_group - value.discount_customer) * value.quantity
+                                                )}
                                              </Typography>
                                              <Button variant="outlined" sx={{ width: "100px" }} component={RouterLink} to={`/product/${value.product_slug}`}>
                                                 Beli Lagi
@@ -138,7 +182,7 @@ export default function OrderDetail(props) {
                                     <td>:</td>
                                     <td>
                                        <Typography variant="body2">
-                                          {data.expedition} - {data.expedition_service}
+                                          {data.expedition.toUpperCase()} ({data.expedition_service})
                                        </Typography>
                                     </td>
                                  </tr>
@@ -204,7 +248,7 @@ export default function OrderDetail(props) {
                                  Total Belanja
                               </Typography>
                               <Typography variant="body1" fontWeight="bold">
-                                 {NumberFormat(data.total_price - data.unique_code)}
+                                 {NumberFormat(totalPrice + data.shipping_cost - data.shipping_discount)}
                               </Typography>
                            </Box>
                         </Box>
