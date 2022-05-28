@@ -7,6 +7,8 @@ function Validation(error) {
          output = "Masukkan email.";
       } else if (error[0] === "The email has already been taken.") {
          output = "Email telah digunakan.";
+      } else if (error[0] === "The selected email is invalid.") {
+         output = "Email tidak ditemukan.";
       } else if (error[0] === "The phone number field is required.") {
          output = "Masukkan nomor hp.";
       } else if (error[0] === "The phone number must be an integer.") {

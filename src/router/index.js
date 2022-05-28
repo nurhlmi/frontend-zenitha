@@ -8,6 +8,7 @@ import "../App.css";
 import Login from "../views/Auth/Login";
 import Register from "../views/Auth/Register";
 import ResetPassword from "../views/Auth/ResetPassword";
+import NewPassword from "../views/Auth/NewPassword";
 
 import Home from "../views/Home";
 import Category from "../views/Category";
@@ -62,6 +63,14 @@ function Router() {
                element={
                   <Middleware.Before>
                      <App render={<Auth render={<ResetPassword />} />} title="Atur ulang kata sandi" />
+                  </Middleware.Before>
+               }
+            />
+            <Route
+               path="/reset-password/:token"
+               element={
+                  <Middleware.Before>
+                     <App render={<Auth render={<NewPassword />} />} title="Atur ulang kata sandi" />
                   </Middleware.Before>
                }
             />
