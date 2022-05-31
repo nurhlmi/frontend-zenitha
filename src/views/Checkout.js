@@ -52,6 +52,11 @@ export default function Checkout(props) {
    const [auth] = useRecoilState(authentication);
    const [totalCart, setTotalCart] = useRecoilState(carts);
 
+   const [error, setError] = useState();
+   const [data, setData] = useState({
+      marketplace_resi: undefined,
+   });
+
    const [setting, setSetting] = useState();
    const getSetting = async () => {
       await axios
@@ -125,6 +130,23 @@ export default function Checkout(props) {
          });
    };
 
+   const [courier, setCourier] = useState();
+   const getCourier = async () => {
+      await axios
+         .get(`${apiUrl}/courier/fetch`, {
+            params: {
+               active: "yes",
+            },
+            headers: {
+               Authorization: "Bearer " + token,
+            },
+         })
+         .then((res) => {
+            // console.log(res.data.data);
+            setCourier(res.data.data);
+         });
+   };
+
    const [shippingDiscount, setShippingDiscount] = useState(0);
    const [listShippingDiscount, setListShippingDiscount] = useState();
    const getShippingDiscount = async () => {
@@ -144,9 +166,10 @@ export default function Checkout(props) {
    const [productPrice, setProductPrice] = useState(0);
    const [productDiscount, setProductDiscount] = useState(0);
    const [productQuantity, setProductQuantity] = useState(0);
-   const [productWeight, setProductWeight] = useState(0);
    const [totalPrice, setTotalPrice] = useState(0);
    const [totalBill, setTotalBill] = useState(0);
+   const [preOrder, setPreOrder] = useState(0);
+   const [cod, setCod] = useState(false);
    const getCart = async (groupDiscount, customerDiscount) => {
       await axios
          .get(`${apiUrl}/carts`, {
@@ -156,174 +179,181 @@ export default function Checkout(props) {
          })
          .then((res) => {
             // console.log(res.data.data);
-            let data = [];
+            let newdata = [];
+            let filter = res.data.data.filter(function (e) {
+               return e.product_combination.product.preorder === 0;
+            });
+            if (filter.length > 0) {
+               newdata = [
+                  {
+                     data: [],
+                     subtotal: 0,
+                     preorder: false,
+                     courier: "none",
+                     shipping: {
+                        name: null,
+                        service: null,
+                        cost: 0,
+                        etd: null,
+                        note: null,
+                        description: null,
+                     },
+                     payment_method: "none",
+                  },
+               ];
+            }
+
             if (res.data.data.length > 0) {
                let productprice = 0;
                let productdiscount = 0;
                let productquantity = 0;
                let productweight = 0;
+               let productsubtotal = 0;
+
                // eslint-disable-next-line array-callback-return
                res.data.data.map((value, index) => {
-                  if (value.product_combination.status === "active") {
-                     value.product_combination.discount_product =
-                        value.product_combination.price -
-                        Discount(value.product_combination.price, value.product_combination.product.discount, value.product_combination.product.discount_type);
-                     value.product_combination.discount_product_balance = Discount(
-                        value.product_combination.price,
-                        value.product_combination.product.discount,
-                        value.product_combination.product.discount_type
-                     );
-
-                     value.product_combination.discount_group = 0;
-                     value.product_combination.discount_customer = 0;
-
-                     // eslint-disable-next-line array-callback-return
-                     groupDiscount.map((row) => {
-                        if (row.status === "active") {
-                           if (row.category.id === value.product_combination.product.category.id) {
-                              value.product_combination.discount_group =
-                                 value.product_combination.discount_product_balance -
-                                 Discount(value.product_combination.discount_product_balance, row.discount, row.discount_type);
-                              value.product_combination.discount_group_balance = Discount(
-                                 value.product_combination.discount_product_balance,
-                                 row.discount,
-                                 row.discount_type
-                              );
-
-                              // eslint-disable-next-line array-callback-return
-                              customerDiscount.map((rows) => {
-                                 if (rows.status === "active") {
-                                    if (rows.category.id === value.product_combination.product.category.id) {
-                                       value.product_combination.discount_customer =
-                                          value.product_combination.discount_group_balance -
-                                          Discount(value.product_combination.discount_group_balance, row.discount, row.discount_type);
-                                       value.product_combination.discount_customer_balance = Discount(
-                                          value.product_combination.discount_group_balance,
-                                          row.discount,
-                                          row.discount_type
-                                       );
-                                    }
-                                 }
-                              });
-                           }
-                        }
-                        // console.log(row);
-                        // console.log(value);
+                  if (value.product_combination.product.preorder === 0) {
+                     newdata[0].data.push(value);
+                  }
+               });
+               // eslint-disable-next-line array-callback-return
+               res.data.data.map((value, index) => {
+                  if (value.product_combination.product.preorder === 1) {
+                     // colors.splice(index, 0, "white");
+                     newdata.push({
+                        data: [value],
+                        subtotal: 0,
+                        preorder: true,
+                        courier: "none",
+                        shipping: {
+                           name: null,
+                           service: null,
+                           cost: 0,
+                           etd: null,
+                           note: null,
+                           description: null,
+                        },
+                        payment_method: "po",
                      });
+                  }
+               });
+               const preorder = newdata.filter((row) => row.preorder === true);
+               setPreOrder(preorder.length);
 
-                     if (value.product_combination.discount_customer === 0) {
+               // eslint-disable-next-line array-callback-return
+               newdata.map((value) => {
+                  productweight = 0;
+                  productsubtotal = 0;
+                  // eslint-disable-next-line array-callback-return
+                  value.data.map((value) => {
+                     if (value.product_combination.status === "active") {
+                        value.product_combination.discount_product =
+                           value.product_combination.price -
+                           Discount(
+                              value.product_combination.price,
+                              value.product_combination.product.discount,
+                              value.product_combination.product.discount_type
+                           );
+                        value.product_combination.discount_product_balance =
+                           value.quantity *
+                           Discount(
+                              value.product_combination.price,
+                              value.product_combination.product.discount,
+                              value.product_combination.product.discount_type
+                           );
+
+                        value.product_combination.discount_group = 0;
+                        value.product_combination.discount_customer = 0;
+                        value.product_combination.discount_po = 0;
+
                         // eslint-disable-next-line array-callback-return
-                        customerDiscount.map((row) => {
+                        groupDiscount.map((row) => {
                            if (row.status === "active") {
                               if (row.category.id === value.product_combination.product.category.id) {
-                                 value.product_combination.discount_customer =
+                                 value.product_combination.discount_group =
                                     value.product_combination.discount_product_balance -
                                     Discount(value.product_combination.discount_product_balance, row.discount, row.discount_type);
-                                 value.product_combination.discount_customer_balance = Discount(
+                                 value.product_combination.discount_group_balance = Discount(
                                     value.product_combination.discount_product_balance,
                                     row.discount,
                                     row.discount_type
                                  );
+
+                                 // eslint-disable-next-line array-callback-return
+                                 customerDiscount.map((rows) => {
+                                    if (rows.status === "active") {
+                                       if (rows.category.id === value.product_combination.product.category.id) {
+                                          value.product_combination.discount_customer =
+                                             value.product_combination.discount_group_balance -
+                                             Discount(value.product_combination.discount_group_balance, row.discount, row.discount_type);
+                                          value.product_combination.discount_customer_balance = Discount(
+                                             value.product_combination.discount_group_balance,
+                                             row.discount,
+                                             row.discount_type
+                                          );
+                                       }
+                                    }
+                                 });
                               }
                            }
+                           // console.log(row);
+                           // console.log(value);
                         });
-                     }
-                     value.product_combination.subtotal =
-                        Discount(value.product_combination.price, value.product_combination.product.discount, value.product_combination.product.discount_type) -
-                        value.product_combination.discount_group -
-                        value.product_combination.discount_customer;
-                     data.push(value);
 
-                     productprice += value.quantity * value.product_combination.subtotal;
-                     productquantity += value.quantity;
-                     if (value.product_combination.product.weight_unit === "kg") {
-                        productweight += value.quantity * (value.product_combination.product.product_weight * 1000);
-                     } else {
-                        productweight += value.quantity * value.product_combination.product.product_weight;
+                        if (value.product_combination.discount_customer === 0) {
+                           // eslint-disable-next-line array-callback-return
+                           customerDiscount.map((row) => {
+                              if (row.status === "active") {
+                                 if (row.category.id === value.product_combination.product.category.id) {
+                                    value.product_combination.discount_customer =
+                                       value.product_combination.discount_product_balance -
+                                       Discount(value.product_combination.discount_product_balance, row.discount, row.discount_type);
+                                    value.product_combination.discount_customer_balance = Discount(
+                                       value.product_combination.discount_product_balance,
+                                       row.discount,
+                                       row.discount_type
+                                    );
+                                 }
+                              }
+                           });
+                        }
+                        value.product_combination.subtotal =
+                           value.product_combination.discount_product_balance -
+                           value.product_combination.discount_group -
+                           value.product_combination.discount_customer;
+                        if (value.product_combination.product.preorder === 1) {
+                           value.product_combination.discount_po = Discount(value.product_combination.subtotal, 10, "percent");
+                           value.product_combination.discount_po_balance = value.product_combination.subtotal - value.product_combination.discount_po;
+                           value.product_combination.subtotal = value.product_combination.discount_po_balance;
+                        }
+                        productsubtotal = productsubtotal + value.product_combination.subtotal;
+
+                        // productprice += value.quantity * value.product_combination.subtotal;
+                        productprice += value.product_combination.subtotal;
+                        productquantity += value.quantity;
+                        if (value.product_combination.product.weight_unit === "kg") {
+                           productweight += value.quantity * (value.product_combination.product.product_weight * 1000);
+                        } else {
+                           productweight += value.quantity * value.product_combination.product.product_weight;
+                        }
                      }
-                  }
+                  });
+                  value.weight = productweight;
+                  value.subtotal = productsubtotal;
                });
                setProductPrice(productprice);
                setProductDiscount(Math.round(productdiscount));
                setProductQuantity(productquantity);
-               setProductWeight(productweight);
                setTotalPrice(productprice - productdiscount);
-               setTotalBill(productprice - productdiscount + shipping.cost - shippingDiscount);
+               setTotalBill(productprice - productdiscount + shipping - shippingDiscount);
             } else {
                navigate("/cart");
             }
-            // console.log(data);
-            setCart(data);
+            // console.log(newdata);
+            setCart(newdata);
          })
          .catch((err) => {
-            console.log(err.response);
-         });
-   };
-
-   const [courier, setCourier] = useState();
-   const getCourier = async () => {
-      await axios
-         .get(`${apiUrl}/courier/fetch`, {
-            params: {
-               active: "yes",
-            },
-            headers: {
-               Authorization: "Bearer " + token,
-            },
-         })
-         .then((res) => {
-            // console.log(res.data.data);
-            setCourier(res.data.data);
-         });
-   };
-
-   const [loading, setLoading] = useState(false);
-   const [disabled, setDisabled] = useState(true);
-   const [shipping, setShipping] = useState({
-      name: null,
-      service: null,
-      cost: 0,
-      etd: null,
-      note: null,
-      description: null,
-   });
-   const [listShippingCost, setListShippingCost] = useState();
-   const getShippingCost = async (courier) => {
-      setDisabled(true);
-      setShipping({
-         ...shipping,
-         name: null,
-         cost: 0,
-      });
-      setShippingDiscount(0);
-      setTotalBill(productPrice - productDiscount);
-      let formData = new FormData();
-      formData.append("origin", data.address.district.id);
-      formData.append("originType", "subdistrict");
-      formData.append("destination", setting.district.id);
-      formData.append("destinationType", "subdistrict");
-      formData.append("weight", productWeight);
-      formData.append("courier", courier);
-      await axios
-         .post(`${apiUrl}/shipping/cost`, formData, {
-            headers: {
-               Authorization: "Bearer " + token,
-            },
-         })
-         .then((res) => {
-            let value = res.data.rajaongkir;
-            // console.log(value);
-            setListShippingCost(value.results[0].costs);
-            setShipping({
-               ...shipping,
-               name: value.results[0].name,
-            });
-            handleShipping(value.results[0].costs[0]);
-            setDisabled(false);
-         })
-         .catch((xhr) => {
-            console.log(xhr);
-            setDisabled(true);
+            // console.log(err);
          });
    };
 
@@ -341,6 +371,108 @@ export default function Checkout(props) {
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
 
+   const [loading, setLoading] = useState(false);
+   const [disabled, setDisabled] = useState(false);
+   const [shipping, setShipping] = useState(0);
+   const [disabledService, setDisabledService] = useState(false);
+   const handleCourier = async (e, weight, before_cost, key) => {
+      setDisabledService(true);
+      const newState = cart.map((obj, index) =>
+         index === key
+            ? {
+                 ...obj,
+                 courier: e.target.value,
+                 list_shipping: [],
+                 shipping: {
+                    name: null,
+                    service: null,
+                    cost: 0,
+                    etd: null,
+                    note: null,
+                    description: null,
+                 },
+              }
+            : obj
+      );
+      setCart(newState);
+      const cod = newState.filter((row) => row.courier === "ninja");
+      setCod(newState.length === cod.length ? true : false);
+
+      setShippingDiscount(0);
+      setTotalBill(productPrice - productDiscount);
+      let formData = new FormData();
+      formData.append("origin", data.address.district.id);
+      formData.append("originType", "subdistrict");
+      formData.append("destination", setting.district.id);
+      formData.append("destinationType", "subdistrict");
+      formData.append("weight", weight);
+      formData.append("courier", e.target.value);
+      await axios
+         .post(`${apiUrl}/shipping/cost`, formData, {
+            headers: {
+               Authorization: "Bearer " + token,
+            },
+         })
+         .then((res) => {
+            let value = res.data.rajaongkir;
+            // console.log(value);
+            const newStatee = newState.map((obj, index) =>
+               index === key
+                  ? {
+                       ...obj,
+                       list_shipping: value.results[0].costs,
+                       shipping: {
+                          ...obj.shipping,
+                          name: value.results[0].name,
+                       },
+                    }
+                  : obj
+            );
+            setCart(newStatee);
+            handleService(key, value.results[0].costs[0], before_cost, newStatee);
+         })
+         .catch((xhr) => {
+            console.log(xhr);
+            setDisabled(true);
+         });
+   };
+
+   const handleService = (key, value, before_cost, newstate) => {
+      setAnchorEl(false);
+      let newshipping = shipping - before_cost + value.cost[0].value;
+      setShipping(newshipping);
+      const newState = newstate.map((obj, index) =>
+         index === key
+            ? {
+                 ...obj,
+                 shipping: {
+                    ...obj.shipping,
+                    service: value.service,
+                    cost: value.cost[0].value,
+                    etd: value.cost[0].etd,
+                    note: value.cost[0].note,
+                    description: value.description,
+                 },
+              }
+            : obj
+      );
+      setCart(newState);
+      setDisabledService(false);
+
+      if (totalPrice >= listShippingDiscount.minimum_price && listShippingDiscount.status === "active") {
+         if (newshipping <= listShippingDiscount.max_shipping_discount) {
+            setShippingDiscount(value.cost[0].value);
+            setTotalBill(productPrice - productDiscount);
+         } else {
+            setShippingDiscount(listShippingDiscount.max_shipping_discount);
+            setTotalBill(productPrice - productDiscount + newshipping - listShippingDiscount.max_shipping_discount);
+         }
+      } else {
+         setShippingDiscount(0);
+         setTotalBill(productPrice - productDiscount + newshipping);
+      }
+   };
+
    const [dialogAddress, setDialogAddress] = useState(false);
    const handleDialogAddress = () => {
       setDialogAddress(!dialogAddress);
@@ -355,46 +487,10 @@ export default function Checkout(props) {
          courier: "none",
       });
       setTotalBill(productPrice - productDiscount);
-      setShipping({
-         name: null,
-         service: null,
-         cost: 0,
-         etd: null,
-         note: null,
-         description: null,
-      });
-   };
-
-   const handleShipping = (value) => {
-      // console.log(value);
-      setAnchorEl(false);
-      setShippingDiscount(0);
-      setTotalBill(productPrice - productDiscount);
-      setShipping({
-         ...shipping,
-         service: value.service,
-         cost: value.cost[0].value,
-         etd: value.cost[0].etd,
-         note: value.cost[0].note,
-         description: value.description,
-      });
-      if (totalPrice >= listShippingDiscount.minimum_price && listShippingDiscount.status === "active") {
-         if (value.cost[0].value <= listShippingDiscount.max_shipping_discount) {
-            setShippingDiscount(value.cost[0].value);
-            setTotalBill(productPrice - productDiscount);
-         } else {
-            setShippingDiscount(listShippingDiscount.max_shipping_discount);
-            setTotalBill(productPrice - productDiscount + value.cost[0].value - listShippingDiscount.max_shipping_discount);
-         }
-      } else {
-         setShippingDiscount(0);
-         setTotalBill(productPrice - productDiscount + value.cost[0].value);
-      }
    };
 
    const [paymentMethod, setPaymentMethod] = useState([]);
    const handleChange = (e) => {
-      e.target.name === "courier" && getShippingCost(e.target.value);
       if (e.target.name === "payment_method") {
          let split = e.target.value.split(";");
          setPaymentMethod(split);
@@ -458,11 +554,6 @@ export default function Checkout(props) {
       }
    };
 
-   const [data, setData] = useState({
-      courier: "none",
-      marketplace_resi: undefined,
-   });
-   const [error, setError] = useState();
    const handleSubmit = async (e) => {
       e.preventDefault();
       setDialogLoading(true);
@@ -480,26 +571,19 @@ export default function Checkout(props) {
          formData.append("marketplace_resi", data.marketplace_resi);
       }
       formData.append("total_price", totalBill);
-      formData.append("shipping_cost", shipping.cost);
       formData.append("shipping_discount", shippingDiscount);
-      formData.append("expedition", data.courier);
-      formData.append("expedition_service", `${shipping.service} - ${shipping.description}`);
-      formData.append("payment_method", paymentMethod[0]);
-      if (paymentMethod[0] === "transfer") {
-         formData.append("bank_name", paymentMethod[1]);
-         formData.append("no_rek", paymentMethod[2]);
-      }
       // eslint-disable-next-line array-callback-return
-      cart.map((value, index) => {
-         if (value.product_combination.status === "active") {
+      cart.map((obj, key) => {
+         // eslint-disable-next-line array-callback-return
+         obj.data.map((value, index) => {
             formData.append(
-               `transaction_product[${index}][product_name]`,
+               `transaction[${key}][transaction_product][${index}][product_name]`,
                `${value.product_name} - ${value.product_combination.combination_string.replaceAll("-", ", ")}`
             );
-            formData.append(`transaction_product[${index}][product_slug]`, value.product_combination.product_slug);
-            formData.append(`transaction_product[${index}][image]`, value.product_image);
-            formData.append(`transaction_product[${index}][price]`, value.product_combination.price);
-            formData.append(`transaction_product[${index}][quantity]`, value.quantity);
+            formData.append(`transaction[${key}][transaction_product][${index}][product_slug]`, value.product_combination.product_slug);
+            formData.append(`transaction[${key}][transaction_product][${index}][image]`, value.product_image);
+            formData.append(`transaction[${key}][transaction_product][${index}][price]`, value.product_combination.price);
+            formData.append(`transaction[${key}][transaction_product][${index}][quantity]`, value.quantity);
             let productdiscount = 0;
             if (value.product_combination.product.discount !== null) {
                if (value.product_combination.product.discount_type === "rp") {
@@ -508,16 +592,25 @@ export default function Checkout(props) {
                   productdiscount = value.quantity * (value.product_combination.price * (value.product_combination.product.discount / 100));
                }
             }
-            formData.append(`transaction_product[${index}][discount]`, productdiscount);
-            formData.append(`transaction_product[${index}][discount_product]`, value.product_combination.discount_product);
-            formData.append(`transaction_product[${index}][discount_group]`, value.product_combination.discount_group);
-            formData.append(`transaction_product[${index}][discount_customer]`, value.product_combination.discount_customer);
-            formData.append(`transaction_product[${index}][description]`, value.description);
-            formData.append(`transaction_product[${index}][notes]`, "notes");
+            formData.append(`transaction[${key}][transaction_product][${index}][discount]`, productdiscount);
+            formData.append(`transaction[${key}][transaction_product][${index}][discount_product]`, value.product_combination.discount_product);
+            formData.append(`transaction[${key}][transaction_product][${index}][discount_group]`, value.product_combination.discount_group);
+            formData.append(`transaction[${key}][transaction_product][${index}][discount_customer]`, value.product_combination.discount_customer);
+            formData.append(`transaction[${key}][transaction_product][${index}][description]`, value.description);
+            formData.append(`transaction[${key}][transaction_product][${index}][notes]`, "");
+         });
+         formData.append(`transaction[${key}][sub_total]`, obj.subtotal);
+         formData.append(`transaction[${key}][expedition]`, obj.courier);
+         formData.append(`transaction[${key}][expedition_service]`, `${obj.shipping.service} - ${obj.shipping.description}`);
+         formData.append(`transaction[${key}][shipping_cost]`, obj.shipping.cost);
+         formData.append(`transaction[${key}][payment_method]`, obj.payment_method === "none" ? paymentMethod[0] : obj.payment_method);
+         if (paymentMethod[0] === "transfer") {
+            formData.append("bank_name", paymentMethod[1]);
+            formData.append("no_rek", paymentMethod[2]);
          }
       });
       // console.clear();
-      console.log(Object.fromEntries(formData));
+      // console.log(Object.fromEntries(formData));
       await axios
          .post(`${apiUrl}/transaction/checkout`, formData, {
             headers: {
@@ -532,13 +625,13 @@ export default function Checkout(props) {
                total: total,
             });
             if (paymentMethod[0] === "transfer") {
-               navigate(`/payment/${res.data.data.payment[0].id}`);
+               navigate(`/payment/${res.data.data.id}`);
             } else {
-               navigate(`/order/${res.data.data.id}`);
+               navigate(`/order`);
             }
          })
          .catch((xhr) => {
-            console.log(xhr.response);
+            console.log(xhr);
             setDialogLoading(false);
          });
    };
@@ -598,13 +691,18 @@ export default function Checkout(props) {
                                  </Button>
                               </Grid>
                            </Grid>
-                           <Box sx={{ borderTop: "4px solid #eee", mt: 1, pt: 2 }}>
-                              <Grid container spacing={3}>
-                                 <Grid item xs={12} sm={7} md={12} lg={7.5}>
-                                    {cart.map(
-                                       (value, index) =>
-                                          value.product_combination.status === "active" && (
-                                             <Box sx={{ pb: 2 }} key={index}>
+                           <Box sx={{ mt: 1 }}>
+                              {cart.map((val, key) => (
+                                 <Box sx={{ borderTop: "4px solid #eee" }} key={key}>
+                                    {cart.length > 1 && (
+                                       <Typography variant="body2" fontWeight="bold" mt={2}>
+                                          Pesanan {key + 1}
+                                       </Typography>
+                                    )}
+                                    <Grid container spacing={{ xs: 0, sm: 3 }}>
+                                       <Grid item xs={12} sm={7} md={12} lg={7.5}>
+                                          {val.data.map((value, index) => (
+                                             <Box sx={{ pt: 2 }} key={index}>
                                                 <Grid container alignItems="start">
                                                    <Grid item>
                                                       <img alt={value.product_name} src={value.product_image} width="80" />
@@ -669,167 +767,199 @@ export default function Checkout(props) {
                                                          </Typography>
                                                       </Box>
                                                    )}
-                                                   {value.product_combination.discount_group > 0 || value.product_combination.discount_customer > 0 ? (
-                                                      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5, mb: 2 }}>
-                                                         <Typography variant="body2" fontWeight="bold">
-                                                            Subtotal
+                                                   {value.product_combination.discount_po !== 0 && (
+                                                      <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5 }}>
+                                                         <Typography variant="body2" color="text.secondary">
+                                                            Pembayaran Pre-Order (10%)
                                                          </Typography>
-                                                         <Typography variant="body2" fontWeight="bold">
-                                                            {NumberFormat(value.product_combination.subtotal)}
+                                                         <Typography variant="body2" color="text.secondary">
+                                                            -{NumberFormat(value.product_combination.discount_po)}
                                                          </Typography>
                                                       </Box>
-                                                   ) : null}
+                                                   )}
+                                                   <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5, mb: 2 }}>
+                                                      <Typography variant="body2" fontWeight="bold">
+                                                         Subtotal
+                                                      </Typography>
+                                                      <Typography variant="body2" fontWeight="bold">
+                                                         {NumberFormat(value.product_combination.subtotal)}
+                                                      </Typography>
+                                                   </Box>
                                                 </Box>
-                                                <Divider />
+                                                {val.data.length !== index + 1 && <Divider />}
                                              </Box>
-                                          )
-                                    )}
-                                 </Grid>
-                                 <Grid item xs={12} sm={5} md={12} lg={4.5} sx={{ mb: 2 }}>
-                                    <Typography variant="body2" fontWeight="bold" gutterBottom>
-                                       Kurir Pengiriman
-                                    </Typography>
-                                    <TextField size="small" name="courier" defaultValue="none" onChange={handleChange} value={data.courier} select fullWidth>
-                                       <MenuItem value="none" disabled selected>
-                                          Pilih Kurir
-                                       </MenuItem>
-                                       {courier.map((value, index) => (
-                                          <MenuItem value={value.slug} key={index}>
-                                             {value.courier}
-                                          </MenuItem>
-                                       ))}
-                                    </TextField>
-                                    {shipping.cost > 0 && (
-                                       <Box sx={{ mt: 2 }}>
+                                          ))}
+                                          <Divider />
+                                          <Box sx={{ display: "flex", justifyContent: "space-between", my: 2 }}>
+                                             <Typography variant="body2" fontWeight="bold">
+                                                Subtotal Pesanan
+                                             </Typography>
+                                             <Typography variant="body2" fontWeight="bold">
+                                                {NumberFormat(val.subtotal)}
+                                             </Typography>
+                                          </Box>
+                                       </Grid>
+                                       <Grid item xs={12} sm={5} md={12} lg={4.5} sx={{ mb: 3, mt: { xs: 1, sm: 2, md: 0, lg: 2 } }}>
                                           <Typography variant="body2" fontWeight="bold" gutterBottom>
-                                             Kurir Pilihan
+                                             Kurir Pengiriman
                                           </Typography>
-                                          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                             <Box>
-                                                <Typography component="div" variant="caption" color="text.secondary">
-                                                   {shipping.name}
+                                          <TextField
+                                             size="small"
+                                             name="courier"
+                                             defaultValue="none"
+                                             onChange={(e) => handleCourier(e, val.weight, val.shipping.cost, key)}
+                                             value={val.courier}
+                                             disabled={disabledService}
+                                             select
+                                             fullWidth
+                                          >
+                                             <MenuItem value="none" disabled selected>
+                                                Pilih Kurir
+                                             </MenuItem>
+                                             {courier.map((value, index) => (
+                                                <MenuItem value={value.slug} key={index}>
+                                                   {value.courier}
+                                                </MenuItem>
+                                             ))}
+                                          </TextField>
+                                          {val.shipping.cost > 0 && (
+                                             <Box sx={{ mt: 2 }}>
+                                                <Typography variant="body2" fontWeight="bold" gutterBottom>
+                                                   Kurir Pilihan
                                                 </Typography>
-                                                <Typography component="div" variant="caption" color="text.secondary">
-                                                   {shipping.service} - {shipping.description} ({NumberFormat(shipping.cost)})
-                                                </Typography>
-                                                {shipping.etd !== "" && (
-                                                   <Typography component="div" variant="caption" color="text.secondary">
-                                                      Estimasi tiba {shipping.etd === "0" || shipping.etd === "1-1" ? "1" : shipping.etd} hari
-                                                   </Typography>
-                                                )}
-                                             </Box>
-                                             <Box>
-                                                {listShippingCost?.length > 1 && (
-                                                   <Typography
-                                                      component="div"
-                                                      variant="caption"
-                                                      fontWeight="bold"
-                                                      id="basic-button"
-                                                      aria-controls={open ? "basic-menu" : undefined}
-                                                      aria-haspopup="true"
-                                                      aria-expanded={open ? "true" : undefined}
-                                                      onClick={handleClick}
-                                                      sx={{ cursor: "pointer" }}
-                                                   >
-                                                      Ubah
-                                                   </Typography>
-                                                )}
-                                                <Menu
-                                                   id="basic-menu"
-                                                   anchorEl={anchorEl}
-                                                   open={open}
-                                                   onClose={handleClose}
-                                                   MenuListProps={{
-                                                      "aria-labelledby": "basic-button",
-                                                   }}
-                                                   PaperProps={{
-                                                      style: {
-                                                         width: "290px",
-                                                      },
-                                                   }}
-                                                   anchorOrigin={{
-                                                      vertical: "bottom",
-                                                      horizontal: "right",
-                                                   }}
-                                                   transformOrigin={{
-                                                      vertical: "top",
-                                                      horizontal: "right",
-                                                   }}
-                                                >
-                                                   {listShippingCost?.map((value, index) => (
-                                                      <MenuItem value={value} onClick={() => handleShipping(value)} key={index}>
-                                                         {shipping.service === value.service && (
-                                                            <ListItemIcon sx={{ mr: 0 }}>
-                                                               <Check />
-                                                            </ListItemIcon>
-                                                         )}
-                                                         <ListItemText inset={shipping.service !== value.service}>{value.service}</ListItemText>
-                                                         <Typography variant="body2" color="text.secondary" noWrap>
-                                                            {NumberFormat(value.cost[0].value)}
+                                                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                                                   <Box>
+                                                      <Typography component="div" variant="caption" color="text.secondary">
+                                                         {val.shipping.name}
+                                                      </Typography>
+                                                      <Typography component="div" variant="caption" color="text.secondary">
+                                                         {val.shipping.service} - {val.shipping.description} ({NumberFormat(val.shipping.cost)})
+                                                      </Typography>
+                                                      {val.shipping.etd !== "" && (
+                                                         <Typography component="div" variant="caption" color="text.secondary">
+                                                            Estimasi tiba {val.shipping.etd === "0" || val.shipping.etd === "1-1" ? "1" : val.shipping.etd} hari
                                                          </Typography>
-                                                      </MenuItem>
-                                                   ))}
-                                                </Menu>
+                                                      )}
+                                                   </Box>
+                                                   <Box>
+                                                      {val.list_shipping?.length > 1 && (
+                                                         <Typography
+                                                            component="div"
+                                                            variant="caption"
+                                                            fontWeight="bold"
+                                                            aria-controls={open ? "basic-menu" : undefined}
+                                                            aria-haspopup="true"
+                                                            aria-expanded={open ? "true" : undefined}
+                                                            onClick={handleClick}
+                                                            sx={{ cursor: "pointer" }}
+                                                            disabled={disabledService}
+                                                         >
+                                                            Ubah
+                                                         </Typography>
+                                                      )}
+                                                      <Menu
+                                                         anchorEl={anchorEl}
+                                                         open={open}
+                                                         onClose={handleClose}
+                                                         MenuListProps={{
+                                                            "aria-labelledby": "basic-button",
+                                                         }}
+                                                         PaperProps={{
+                                                            style: {
+                                                               width: "290px",
+                                                            },
+                                                         }}
+                                                         anchorOrigin={{
+                                                            vertical: "bottom",
+                                                            horizontal: "right",
+                                                         }}
+                                                         transformOrigin={{
+                                                            vertical: "top",
+                                                            horizontal: "right",
+                                                         }}
+                                                      >
+                                                         {val.list_shipping?.map((value, index) => (
+                                                            <MenuItem
+                                                               key={index}
+                                                               value={value}
+                                                               onClick={() => handleService(key, value, val.shipping.cost, cart)}
+                                                            >
+                                                               {val.shipping.service === value.service && (
+                                                                  <ListItemIcon sx={{ mr: 0 }}>
+                                                                     <Check />
+                                                                  </ListItemIcon>
+                                                               )}
+                                                               <ListItemText inset={val.shipping.service !== value.service}>{value.service}</ListItemText>
+                                                               <Typography variant="body2" color="text.secondary" noWrap>
+                                                                  {NumberFormat(value.cost[0].value)}
+                                                               </Typography>
+                                                            </MenuItem>
+                                                         ))}
+                                                      </Menu>
+                                                   </Box>
+                                                </Box>
+                                             </Box>
+                                          )}
+                                          {val.shipping.cost === 0 && val.courier !== "none" && (
+                                             <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100px" }}>
+                                                <CircularProgress size={20} />
+                                             </Box>
+                                          )}
+                                       </Grid>
+                                    </Grid>
+                                 </Box>
+                              ))}
+                              {data.address.type === "receiver" && auth.user.role !== "customer" && (
+                                 <Grid container spacing={{ xs: 0, sm: 3, md: 0, lg: 0 }}>
+                                    <Grid item xs={12} sm={7} md={12} lg={7.5}>
+                                       <Typography variant="body2" fontWeight="bold" gutterBottom>
+                                          Nomor Resi
+                                       </Typography>
+                                       {data.marketplace_resi !== undefined ? (
+                                          <Box sx={stagingBox}>
+                                             <Box sx={{ display: "flex", alignItems: "center" }}>
+                                                <ImageOutlined fontSize="small" />
+                                                <Tooltip title={data.marketplace_resi.name} onClick={() => handlePreview(data.marketplace_resi)}>
+                                                   <Typography variant="body2" sx={{ flex: 1 }} mx={1} noWrap>
+                                                      {data.marketplace_resi.name}
+                                                   </Typography>
+                                                </Tooltip>
+                                                <Tooltip title="Hapus" onClick={(e) => setData({ ...data, marketplace_resi: undefined })}>
+                                                   <IconButton>
+                                                      <ClearRounded fontSize="small" />
+                                                   </IconButton>
+                                                </Tooltip>
                                              </Box>
                                           </Box>
-                                       </Box>
-                                    )}
-                                    {shipping.cost === 0 && data?.courier !== "none" && (
-                                       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100px" }}>
-                                          <CircularProgress size={20} />
-                                       </Box>
-                                    )}
-                                    {data.address.type === "receiver" && auth.user.role !== "customer" && (
-                                       <Box sx={{ mt: 2 }}>
-                                          <Typography variant="body2" fontWeight="bold" gutterBottom>
-                                             Nomor Resi
-                                          </Typography>
-                                          {data.marketplace_resi !== undefined ? (
-                                             <Box sx={stagingBox}>
-                                                <Box sx={{ display: "flex", alignItems: "center" }}>
-                                                   <ImageOutlined fontSize="small" />
-                                                   <Tooltip title={data.marketplace_resi.name} onClick={() => handlePreview(data.marketplace_resi)}>
-                                                      <Typography variant="body2" sx={{ flex: 1 }} mx={1} noWrap>
-                                                         {data.marketplace_resi.name}
-                                                      </Typography>
-                                                   </Tooltip>
-                                                   <Tooltip title="Hapus" onClick={(e) => setData({ ...data, marketplace_resi: undefined })}>
-                                                      <IconButton>
-                                                         <ClearRounded fontSize="small" />
-                                                      </IconButton>
-                                                   </Tooltip>
-                                                </Box>
-                                             </Box>
-                                          ) : (
-                                             <Button variant="outlined" startIcon={<FileUploadOutlined />} component="label" fullWidth>
-                                                Upload
-                                                <input name="marketplace_resi" type="file" accept="image/*, application/pdf" onChange={handleChange} hidden />
-                                             </Button>
-                                          )}
-                                          <Typography component="div" variant="caption" color="error">
-                                             {error?.marketplace_resi !== undefined && error.marketplace_resi}
-                                          </Typography>
-                                       </Box>
-                                    )}
+                                       ) : (
+                                          <Button variant="outlined" startIcon={<FileUploadOutlined />} component="label" fullWidth>
+                                             Upload
+                                             <input name="marketplace_resi" type="file" accept="image/*, application/pdf" onChange={handleChange} hidden />
+                                          </Button>
+                                       )}
+                                       <Typography component="div" variant="caption" color="error">
+                                          {error?.marketplace_resi !== undefined && error.marketplace_resi}
+                                       </Typography>
+                                    </Grid>
                                  </Grid>
-                              </Grid>
+                              )}
                            </Box>
                         </Grid>
                         <Grid item xs={12} md={5} lg={4}>
-                           <Card>
+                           <Card sx={{ position: { xs: "relative", md: "fixed" }, width: { xs: "100%", md: "330px", lg: "350px" } }}>
                               <CardContent>
                                  <Typography fontWeight="bold">Ringkasan Belanja</Typography>
                                  <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
                                     <Typography>Total Harga ({productQuantity} Barang)</Typography>
                                     <Typography>{NumberFormat(totalPrice)}</Typography>
                                  </Box>
-                                 {shipping.cost !== 0 && (
+                                 {shipping !== 0 && (
                                     <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5 }}>
                                        <Typography>Total Ongkos Kirim</Typography>
-                                       <Typography>{NumberFormat(shipping.cost)}</Typography>
+                                       <Typography>{NumberFormat(shipping)}</Typography>
                                     </Box>
                                  )}
-                                 {listShippingDiscount.status === "active" && shipping.cost !== 0 && totalPrice >= listShippingDiscount.minimum_price && (
+                                 {listShippingDiscount.status === "active" && shippingDiscount !== 0 && totalPrice >= listShippingDiscount.minimum_price && (
                                     <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5 }}>
                                        <Typography>Diskon Ongkos Kirim</Typography>
                                        <Typography>-{NumberFormat(shippingDiscount)}</Typography>
@@ -934,13 +1064,13 @@ export default function Checkout(props) {
                         sx={{ alignItems: "start", py: 0.5 }}
                         value="cod"
                         control={<Radio />}
-                        disabled={data?.courier !== "ninja"}
+                        disabled={preOrder > 0 || cod === false}
                         label={
                            <Fragment>
                               <Typography variant="body2" mt={1.5}>
                                  COD (Bayar di Tempat)
                               </Typography>
-                              {data?.courier !== "ninja" && (
+                              {preOrder < 1 && cod === false && (
                                  <Typography variant="caption" component="div" color="rgba(0, 0, 0, 0.38)">
                                     Hanya tersedia melalui kurir NINJA
                                  </Typography>
@@ -960,28 +1090,16 @@ export default function Checkout(props) {
                      {NumberFormat(totalBill)}
                   </Typography>
                </Box>
-               {paymentMethod[0] === "transfer" ? (
-                  <LoadingButton
-                     variant="contained"
-                     sx={{ minWidth: { xs: 0, sm: "10rem" }, mb: 0.5 }}
-                     startIcon={<GppGoodOutlined />}
-                     disabled={paymentMethod.length < 1}
-                     loading={dialogLoading}
-                     onClick={handleSubmit}
-                  >
-                     Bayar
-                  </LoadingButton>
-               ) : (
-                  <LoadingButton
-                     variant="contained"
-                     sx={{ minWidth: { xs: 0, sm: "10rem" }, mb: 0.5 }}
-                     disabled={paymentMethod.length < 1}
-                     loading={dialogLoading}
-                     onClick={handleSubmit}
-                  >
-                     Bayar di Tempat
-                  </LoadingButton>
-               )}
+               <LoadingButton
+                  variant="contained"
+                  sx={{ minWidth: { xs: 0, sm: "10rem" }, mb: 0.5 }}
+                  startIcon={preOrder > 0 && <GppGoodOutlined />}
+                  disabled={paymentMethod.length < 1}
+                  loading={dialogLoading}
+                  onClick={handleSubmit}
+               >
+                  {paymentMethod[0] === "transfer" ? "Bayar" : "Bayar di Tempat"}
+               </LoadingButton>
             </DialogActions>
          </Dialog>
          <Dialog open={dialogPreview} onClose={() => setDialogPreview(false)} scroll="paper">
