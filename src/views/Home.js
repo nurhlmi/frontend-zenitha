@@ -127,7 +127,7 @@ export default function Home(props) {
                   </Typography>
                   <Grid container spacing={{ xs: 1, sm: 2 }}>
                      <Grid item xs={0} sm={4} md={3} sx={{ display: { xs: "none", sm: "block" } }}>
-                        <img alt="Logo" src={`/assets/images/logo-zeni-promo.jpg`} width="100%" />
+                        <img alt="Logo" src={`/assets/images/promo.webp`} width="100%" />
                      </Grid>
                      {productHighlight.data.map((value, index) => (
                         <Grid item xs={6} sm={4} md={3} key={index}>
