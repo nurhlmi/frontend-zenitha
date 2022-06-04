@@ -321,11 +321,11 @@ export default function Checkout(props) {
                            value.product_combination.discount_product_balance -
                            value.product_combination.discount_group -
                            value.product_combination.discount_customer;
-                        if (value.product_combination.product.preorder === 1) {
-                           value.product_combination.discount_po = Discount(value.product_combination.subtotal, 10, "percent");
-                           value.product_combination.discount_po_balance = value.product_combination.subtotal - value.product_combination.discount_po;
-                           value.product_combination.subtotal = value.product_combination.discount_po_balance;
-                        }
+                        // if (value.product_combination.product.preorder === 1) {
+                        //    value.product_combination.discount_po = Discount(value.product_combination.subtotal, 10, "percent");
+                        //    value.product_combination.discount_po_balance = value.product_combination.subtotal - value.product_combination.discount_po;
+                        //    value.product_combination.subtotal = value.product_combination.discount_po_balance;
+                        // }
                         productsubtotal = productsubtotal + value.product_combination.subtotal;
 
                         // productprice += value.quantity * value.product_combination.subtotal;
