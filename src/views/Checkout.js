@@ -601,7 +601,7 @@ export default function Checkout(props) {
          });
          formData.append(`transaction[${key}][sub_total]`, obj.subtotal);
          formData.append(`transaction[${key}][expedition]`, obj.courier);
-         formData.append(`transaction[${key}][expedition_service]`, `${obj.shipping.service} - ${obj.shipping.description}`);
+         formData.append(`transaction[${key}][expedition_service]`, `${obj.shipping.name} - ${obj.shipping.service}`);
          formData.append(`transaction[${key}][shipping_cost]`, obj.shipping.cost);
          formData.append(`transaction[${key}][payment_method]`, obj.payment_method === "none" ? paymentMethod[0] : obj.payment_method);
          if (paymentMethod[0] === "transfer") {
@@ -610,6 +610,7 @@ export default function Checkout(props) {
          }
       });
       // console.clear();
+      // console.log(cart);
       // console.log(Object.fromEntries(formData));
       await axios
          .post(`${apiUrl}/transaction/checkout`, formData, {
@@ -1093,7 +1094,7 @@ export default function Checkout(props) {
                <LoadingButton
                   variant="contained"
                   sx={{ minWidth: { xs: 0, sm: "10rem" }, mb: 0.5 }}
-                  startIcon={preOrder > 0 && <GppGoodOutlined />}
+                  startIcon={paymentMethod[0] === "transfer" && <GppGoodOutlined />}
                   disabled={paymentMethod.length < 1}
                   loading={dialogLoading}
                   onClick={handleSubmit}
