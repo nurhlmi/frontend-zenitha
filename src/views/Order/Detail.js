@@ -1,7 +1,25 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Container, Box, Typography, CircularProgress, CardContent, Card, Grid, Button, Tooltip, IconButton } from "@mui/material";
-import { ArrowBack } from "@mui/icons-material";
+import {
+   Container,
+   Box,
+   Typography,
+   CircularProgress,
+   CardContent,
+   Card,
+   Grid,
+   Button,
+   Tooltip,
+   IconButton,
+   Dialog,
+   DialogContent,
+   DialogActions,
+   Stepper,
+   Step,
+   StepLabel,
+   StepContent,
+} from "@mui/material";
+import { ArrowBack, Circle, CloseRounded } from "@mui/icons-material";
 
 import { apiUrl } from "../../variable/Url";
 import { DateFormat, TimeFormat, NumberFormat } from "../../components/Format";
@@ -15,9 +33,9 @@ export default function OrderDetail(props) {
    const token = localStorage.getItem("token");
    const [auth] = useRecoilState(authentication);
 
-   const [data, setData] = React.useState();
-   const [totalQuantity, setTotalQuantity] = React.useState(0);
-   const [totalPrice, setTotalPrice] = React.useState(0);
+   const [data, setData] = useState();
+   const [totalQuantity, setTotalQuantity] = useState(0);
+   const [totalPrice, setTotalPrice] = useState(0);
    const getData = async () => {
       await axios
          .get(`${apiUrl}/transaction/show/${id}`, {
@@ -43,11 +61,45 @@ export default function OrderDetail(props) {
          });
    };
 
-   React.useEffect(() => {
+   useEffect(() => {
       getData();
       window.scrollTo(0, 0);
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
+
+   const [tracking, setTracking] = useState();
+   const [trackingDialog, setTrackingDialog] = useState(false);
+   const handleTrackingDialog = async () => {
+      setTracking(undefined);
+      setTrackingDialog(!trackingDialog);
+      if (trackingDialog === false) {
+         let formData = new FormData();
+         formData.append("courier", data?.expedition);
+         formData.append("waybill", data?.number_resi);
+         // console.log(Object.fromEntries(formData));
+         await axios
+            .post(`${apiUrl}/shipping/waybill`, formData, {
+               headers: {
+                  Authorization: "Bearer " + token,
+               },
+            })
+            .then((res) => {
+               // console.log(res);
+               setTracking(res.data.rajaongkir.result.manifest);
+            })
+            .catch((xhr) => {
+               console.log(xhr.response);
+            });
+      }
+   };
+
+   const CustomStepIcon = (index) => {
+      return (
+         <Typography color={index + 1 !== tracking.length ? "text.secondary" : "#fa591d"}>
+            <Circle />
+         </Typography>
+      );
+   };
 
    return (
       <Container sx={{ flex: 1 }}>
@@ -74,8 +126,8 @@ export default function OrderDetail(props) {
                                     {Status(data.payment_method === "cod" ? "pending_cod" : data.status)}
                                  </Typography>
                                  {data.number_resi !== null && (
-                                    <Typography variant="body2" fontWeight="bold">
-                                       Lihat Detail
+                                    <Typography variant="body2" fontWeight="bold" onClick={handleTrackingDialog}>
+                                       Lacak
                                     </Typography>
                                  )}
                               </Box>
@@ -261,6 +313,46 @@ export default function OrderDetail(props) {
                )}
             </Grid>
          </Grid>
+         <Dialog open={trackingDialog} maxWidth="xs" fullWidth>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", py: 2, pl: 3, pr: 1 }}>
+               <Typography variant="subtitle1" fontWeight="bold">
+                  Lacak
+               </Typography>
+               <IconButton onClick={handleTrackingDialog}>
+                  <CloseRounded />
+               </IconButton>
+            </Box>
+            <DialogContent sx={{ minHeight: "65vh" }} dividers>
+               {tracking !== undefined ? (
+                  <Stepper orientation="vertical" activeStep={tracking.length - 1}>
+                     {tracking.map((value, index) => (
+                        <Step active={true} key={index}>
+                           <StepLabel StepIconComponent={() => CustomStepIcon(index)}>
+                              <Typography variant="caption" color={index + 1 !== tracking.length && "text.secondary"}>
+                                 {DateFormat(value.manifest_date)}, {value.manifest_time} WIB
+                              </Typography>
+                           </StepLabel>
+                           <StepContent>
+                              <Typography variant="caption" color={index + 1 !== tracking.length && "text.secondary"}>
+                                 {value.manifest_description}
+                              </Typography>
+                           </StepContent>
+                        </Step>
+                     ))}
+                  </Stepper>
+               ) : (
+                  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>
+                     <CircularProgress />
+                  </Box>
+               )}
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: "space-between", alignItems: "end", my: 1, mx: 2 }}>
+               <Box></Box>
+               <Button variant="contained" sx={{ minWidth: { xs: 0, sm: "10rem" }, mb: 0.5 }} onClick={handleTrackingDialog}>
+                  Tutup
+               </Button>
+            </DialogActions>
+         </Dialog>
       </Container>
    );
 }
