@@ -233,9 +233,7 @@ export default function OrderDetail(props) {
                                     </td>
                                     <td>:</td>
                                     <td>
-                                       <Typography variant="body2">
-                                          {data.expedition.toUpperCase()} ({data.expedition_service})
-                                       </Typography>
+                                       <Typography variant="body2">{data.expedition_service}</Typography>
                                     </td>
                                  </tr>
                                  <tr>
@@ -272,7 +270,7 @@ export default function OrderDetail(props) {
                                  Metode Pembayaran
                               </Typography>
                               <Typography variant="body2">
-                                 {data.payment_method === "transfer" ? `Transfer Bank ${data.bank_name}` : "COD (Bayar di Tempat)"}
+                                 {data.payment_method === "cod" ? "COD (Bayar di Tempat)" : `Transfer Bank ${data.bank_name}`}
                               </Typography>
                            </Box>
                            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
