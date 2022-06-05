@@ -6,7 +6,7 @@ import { ArrowBack } from "@mui/icons-material";
 import { apiUrl } from "../variable/Url";
 import { DateFormat, TimeFormat, NumberFormat } from "../components/Format";
 import { Link as RouterLink, useParams } from "react-router-dom";
-import { Status } from "../components/Status";
+import { PaymentStatus } from "../components/PaymentStatus";
 import Countdown from "react-countdown";
 
 export default function Payment(props) {
@@ -60,7 +60,7 @@ export default function Payment(props) {
                            </Typography>
                            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
                               <Typography variant="body2" fontWeight="bold">
-                                 {Status(data.status)}
+                                 {PaymentStatus(data.status)}
                               </Typography>
                            </Box>
                            <Typography variant="body2" color="text.secondary" gutterBottom>

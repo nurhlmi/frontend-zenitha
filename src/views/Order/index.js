@@ -117,7 +117,7 @@ export default function Order(props) {
                                           <Typography variant="caption" mr={2}>
                                              {DateFormat(value.created_at)}
                                           </Typography>
-                                          <Chip label={Status(value.no_rek === null ? "pending_cod" : value.status)} size="small" variant="outlined" />
+                                          <Chip label={Status(value.status)} size="small" variant="outlined" />
                                        </Box>
                                        <Grid container>
                                           <Grid item>

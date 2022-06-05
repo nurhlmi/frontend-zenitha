@@ -3,14 +3,12 @@ function Status(param) {
    if (param !== undefined) {
       if (param === "pending") {
          output = "Menunggu Pembayaran";
-      } else if (param === "pending_cod") {
-         output = "Menunggu Konfirmasi";
       } else if (param === "process") {
          output = "Diproses";
       } else if (param === "paid_off") {
-         output = "Dibayar";
+         output = "Menunggu Konfirmasi";
       } else if (param === "sent") {
-         output = "Dikirim";
+         output = "Sedang Dikirim";
       } else if (param === "finish") {
          output = "Selesai";
       } else if (param === "canceled") {
