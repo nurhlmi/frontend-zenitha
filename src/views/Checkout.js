@@ -25,6 +25,7 @@ import {
    RadioGroup,
    FormControlLabel,
    Radio,
+   Checkbox,
 } from "@mui/material";
 import { ArrowBackRounded, Check, CheckRounded, ClearRounded, CloseRounded, FileUploadOutlined, GppGoodOutlined, ImageOutlined } from "@mui/icons-material";
 import { LoadingButton } from "@mui/lab";
@@ -40,7 +41,6 @@ let stagingBox = {
    color: "#000",
    border: "1px solid #e0e0e0",
    display: "inline-block",
-   width: "100%",
    cursor: "pointer",
    borderRadius: 1,
    pl: 2,
@@ -53,7 +53,8 @@ export default function Checkout(props) {
    const [totalCart, setTotalCart] = useRecoilState(carts);
 
    const [error, setError] = useState();
-   const [data, setData] = useState({
+   const [transaction, setTransaction] = useState({
+      type: "store",
       marketplace_resi: undefined,
    });
 
@@ -84,11 +85,12 @@ export default function Checkout(props) {
          })
          .then((res) => {
             // console.log(res.data.data);
-            if (res.data.data.length > 0) {
-               setAddress(res.data.data);
-               setData({
-                  ...data,
-                  address: res.data.data[0],
+            let value = res.data.data;
+            if (value.length > 0) {
+               setAddress(value);
+               setTransaction({
+                  ...transaction,
+                  address: value[0],
                });
             } else {
                navigate(`/settings/address?redirect=${encodeURIComponent("/checkout")}`);
@@ -321,11 +323,11 @@ export default function Checkout(props) {
                            value.product_combination.discount_product_balance -
                            value.product_combination.discount_group -
                            value.product_combination.discount_customer;
-                        // if (value.product_combination.product.preorder === 1) {
-                        //    value.product_combination.discount_po = Discount(value.product_combination.subtotal, 10, "percent");
-                        //    value.product_combination.discount_po_balance = value.product_combination.subtotal - value.product_combination.discount_po;
-                        //    value.product_combination.subtotal = value.product_combination.discount_po_balance;
-                        // }
+                        if (value.product_combination.product.preorder === 1) {
+                           value.product_combination.discount_po = Discount(value.product_combination.subtotal, 10, "percent");
+                           value.product_combination.discount_po_balance = value.product_combination.subtotal - value.product_combination.discount_po;
+                           value.product_combination.subtotal = value.product_combination.discount_po_balance;
+                        }
                         productsubtotal = productsubtotal + value.product_combination.subtotal;
 
                         // productprice += value.quantity * value.product_combination.subtotal;
@@ -401,7 +403,7 @@ export default function Checkout(props) {
       setShippingDiscount(0);
       setTotalBill(productPrice - productDiscount);
       let formData = new FormData();
-      formData.append("origin", data.address.district.id);
+      formData.append("origin", transaction.address.district.id);
       formData.append("originType", "subdistrict");
       formData.append("destination", setting.district.id);
       formData.append("destinationType", "subdistrict");
@@ -473,18 +475,24 @@ export default function Checkout(props) {
       }
    };
 
+   const handleMarketplace = (e) => {
+      setTransaction({
+         ...transaction,
+         type: transaction.type === "store" ? "marketplace" : "store",
+         marketplace_resi: undefined,
+      });
+   };
+
    const [dialogAddress, setDialogAddress] = useState(false);
    const handleDialogAddress = () => {
       setDialogAddress(!dialogAddress);
    };
    const handleAddress = (value) => {
-      // console.log(value);
-      setDisabled(true);
       setDialogAddress(!dialogAddress);
-      setData({
-         ...data,
+      setTransaction({
          address: value,
-         courier: "none",
+         type: "store",
+         marketplace_resi: undefined,
       });
       setTotalBill(productPrice - productDiscount);
    };
@@ -500,15 +508,15 @@ export default function Checkout(props) {
                ...error,
                [e.target.name]: undefined,
             });
-            setData({
-               ...data,
+            setTransaction({
+               ...transaction,
                [e.target.name]: e.target.files[0],
             });
          }
          e.target.value = null;
       } else {
-         setData({
-            ...data,
+         setTransaction({
+            ...transaction,
             [e.target.name]: e.target.value,
          });
       }
@@ -530,8 +538,12 @@ export default function Checkout(props) {
       // eslint-disable-next-line no-mixed-operators
       if (
          auth.user.role === "customer" ||
-         (auth.user.role !== "customer" && data.address.type !== "receiver") ||
-         (auth.user.role !== "customer" && data.address.type === "receiver" && data.marketplace_resi !== undefined)
+         (auth.user.role !== "customer" && transaction.address.type !== "receiver") ||
+         (auth.user.role !== "customer" && transaction.address.type === "receiver" && transaction.type === "store") ||
+         (auth.user.role !== "customer" &&
+            transaction.address.type === "receiver" &&
+            transaction.type === "marketplace" &&
+            transaction.marketplace_resi !== undefined)
       ) {
          setLoading(true);
          setPaymentMethod([]);
@@ -561,17 +573,15 @@ export default function Checkout(props) {
       formData.append("user_id", auth.user.id);
       formData.append(
          "address",
-         `${data.address.address}, ${data.address.district.district}, ${data.address.city.type} ${data.address.city.city}, ${data.address.province.province}, ${data.address.postal_code}`
+         `${transaction.address.address}, ${transaction.address.district.district}, ${transaction.address.city.type} ${transaction.address.city.city}, ${transaction.address.province.province}, ${transaction.address.postal_code}`
       );
-      formData.append(
-         "type",
-         auth.user.role !== "customer" && data.address.type === "receiver" && data.marketplace_resi !== undefined ? "marketplace" : "store"
-      );
-      if (auth.user.role !== "customer" && data.address.type === "receiver" && data.marketplace_resi !== undefined) {
-         formData.append("marketplace_resi", data.marketplace_resi);
+      formData.append("type", transaction.type);
+      if (transaction.type === "marketplace") {
+         formData.append("marketplace_resi", transaction.marketplace_resi);
       }
       formData.append("total_price", totalBill);
       formData.append("shipping_discount", shippingDiscount);
+      let subtotal_preorder = 0;
       // eslint-disable-next-line array-callback-return
       cart.map((obj, key) => {
          // eslint-disable-next-line array-callback-return
@@ -598,8 +608,10 @@ export default function Checkout(props) {
             formData.append(`transaction[${key}][transaction_product][${index}][discount_customer]`, value.product_combination.discount_customer);
             formData.append(`transaction[${key}][transaction_product][${index}][description]`, value.description);
             formData.append(`transaction[${key}][transaction_product][${index}][notes]`, "");
+            subtotal_preorder =
+               value.product_combination.discount_product_balance - value.product_combination.discount_group - value.product_combination.discount_customer;
          });
-         formData.append(`transaction[${key}][sub_total]`, obj.subtotal);
+         formData.append(`transaction[${key}][sub_total]`, obj.preorder === true ? subtotal_preorder : obj.subtotal);
          formData.append(`transaction[${key}][expedition]`, obj.courier);
          formData.append(`transaction[${key}][expedition_service]`, `${obj.shipping.name} - ${obj.shipping.service}`);
          formData.append(`transaction[${key}][shipping_cost]`, obj.shipping.cost);
@@ -648,6 +660,13 @@ export default function Checkout(props) {
       };
    };
 
+   // const handleConsole = (e) => {
+   //    console.clear();
+   //    console.log(transaction);
+   //    console.log(cart);
+   //    handleSubmit(e);
+   // };
+
    return (
       <Fragment>
          <AppBar color="inherit" position="sticky" elevation={0} sx={{ py: 1, borderBottom: "1px solid #e0e0e0" }}>
@@ -675,14 +694,14 @@ export default function Checkout(props) {
                            </Typography>
                            <Divider sx={{ my: 1 }} />
                            <Typography variant="body2" gutterBottom>
-                              <b>{data.address.recipients_name}</b> ({data.address.label})
+                              <b>{transaction.address.recipients_name}</b> ({transaction.address.label})
                            </Typography>
                            <Typography variant="body2" gutterBottom>
-                              +62 {data.address.phone_number}
+                              +62 {transaction.address.phone_number}
                            </Typography>
                            <Typography variant="body2" color="text.secondary">
-                              {data.address.address}, {data.address.district.district}, {data.address.city.type} {data.address.city.city},{" "}
-                              {data.address.province.province}, {data.address.postal_code}
+                              {transaction.address.address}, {transaction.address.district.district}, {transaction.address.city.type}{" "}
+                              {transaction.address.city.city}, {transaction.address.province.province}, {transaction.address.postal_code}
                            </Typography>
                            <Divider sx={{ my: 1 }} />
                            <Grid container spacing={1} sx={{ py: 1 }}>
@@ -690,9 +709,56 @@ export default function Checkout(props) {
                                  <Button variant="outlined" onClick={() => setDialogAddress(true)}>
                                     Pilih Alamat Lain
                                  </Button>
+                                 {/* <Button variant="outlined" onClick={handleConsole}>
+                                    console.log
+                                 </Button> */}
                               </Grid>
                            </Grid>
                            <Box sx={{ mt: 1 }}>
+                              {transaction.address.type === "receiver" && auth.user.role !== "customer" && (
+                                 <Box sx={{ borderTop: "4px solid #eee", py: 1 }}>
+                                    {/* <FormControlLabel control={<Checkbox />} label="Upload Resi" /> */}
+                                    <Box>
+                                       <FormControlLabel
+                                          control={<Checkbox required={true} />}
+                                          label={<Typography variant="body2">Nomor Resi</Typography>}
+                                          onChange={handleMarketplace}
+                                       />
+                                    </Box>
+                                    {transaction.type === "marketplace" && (
+                                       <Box sx={{ mb: 1 }}>
+                                          {transaction.marketplace_resi !== undefined ? (
+                                             <Box sx={stagingBox}>
+                                                <Box sx={{ display: "flex", alignItems: "center" }}>
+                                                   <ImageOutlined fontSize="small" />
+                                                   <Tooltip
+                                                      title={transaction.marketplace_resi.name}
+                                                      onClick={() => handlePreview(transaction.marketplace_resi)}
+                                                   >
+                                                      <Typography variant="body2" sx={{ flex: 1 }} mx={1} noWrap>
+                                                         {transaction.marketplace_resi.name}
+                                                      </Typography>
+                                                   </Tooltip>
+                                                   <Tooltip title="Hapus" onClick={(e) => setTransaction({ ...transaction, marketplace_resi: undefined })}>
+                                                      <IconButton>
+                                                         <ClearRounded fontSize="small" />
+                                                      </IconButton>
+                                                   </Tooltip>
+                                                </Box>
+                                             </Box>
+                                          ) : (
+                                             <Button variant="outlined" startIcon={<FileUploadOutlined />} component="label">
+                                                Pilih File
+                                                <input name="marketplace_resi" type="file" accept="image/*, application/pdf" onChange={handleChange} hidden />
+                                             </Button>
+                                          )}
+                                          <Typography component="div" variant="caption" color="error" mt={1}>
+                                             {error?.marketplace_resi !== undefined && error.marketplace_resi}
+                                          </Typography>
+                                       </Box>
+                                    )}
+                                 </Box>
+                              )}
                               {cart.map((val, key) => (
                                  <Box sx={{ borderTop: "4px solid #eee" }} key={key}>
                                     {cart.length > 1 && (
@@ -910,40 +976,6 @@ export default function Checkout(props) {
                                     </Grid>
                                  </Box>
                               ))}
-                              {data.address.type === "receiver" && auth.user.role !== "customer" && (
-                                 <Grid container spacing={{ xs: 0, sm: 3, md: 0, lg: 0 }}>
-                                    <Grid item xs={12} sm={7} md={12} lg={7.5}>
-                                       <Typography variant="body2" fontWeight="bold" gutterBottom>
-                                          Nomor Resi
-                                       </Typography>
-                                       {data.marketplace_resi !== undefined ? (
-                                          <Box sx={stagingBox}>
-                                             <Box sx={{ display: "flex", alignItems: "center" }}>
-                                                <ImageOutlined fontSize="small" />
-                                                <Tooltip title={data.marketplace_resi.name} onClick={() => handlePreview(data.marketplace_resi)}>
-                                                   <Typography variant="body2" sx={{ flex: 1 }} mx={1} noWrap>
-                                                      {data.marketplace_resi.name}
-                                                   </Typography>
-                                                </Tooltip>
-                                                <Tooltip title="Hapus" onClick={(e) => setData({ ...data, marketplace_resi: undefined })}>
-                                                   <IconButton>
-                                                      <ClearRounded fontSize="small" />
-                                                   </IconButton>
-                                                </Tooltip>
-                                             </Box>
-                                          </Box>
-                                       ) : (
-                                          <Button variant="outlined" startIcon={<FileUploadOutlined />} component="label" fullWidth>
-                                             Upload
-                                             <input name="marketplace_resi" type="file" accept="image/*, application/pdf" onChange={handleChange} hidden />
-                                          </Button>
-                                       )}
-                                       <Typography component="div" variant="caption" color="error">
-                                          {error?.marketplace_resi !== undefined && error.marketplace_resi}
-                                       </Typography>
-                                    </Grid>
-                                 </Grid>
-                              )}
                            </Box>
                         </Grid>
                         <Grid item xs={12} md={5} lg={4}>
@@ -1014,9 +1046,9 @@ export default function Checkout(props) {
                                           {value.postal_code}
                                        </Typography>
                                     </Box>
-                                    {data.address.address === value.address && <CheckRounded />}
+                                    {transaction.address.address === value.address && <CheckRounded />}
                                  </Box>
-                                 {data.address.address !== value.address && (
+                                 {transaction.address.address !== value.address && (
                                     <Button variant="contained" sx={{ mt: 2 }} onClick={() => handleAddress(value)} fullWidth>
                                        Pilih Alamat
                                     </Button>
