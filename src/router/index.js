@@ -36,6 +36,7 @@ import OrderDetail from "../views/Order/Detail";
 
 import Checkout from "../views/Checkout";
 import Payment from "../views/Payment";
+import PaymentDetail from "../views/Payment/PaymentDetail";
 
 function Router() {
    return (
@@ -138,10 +139,18 @@ function Router() {
                }
             />
             <Route
+               path="/payment"
+               element={
+                  <Middleware.After>
+                     <App render={<Payment />} title="Menunggu Pembayaran" />
+                  </Middleware.After>
+               }
+            />
+            <Route
                path="/payment/:id"
                element={
                   <Middleware.After>
-                     <App render={<Payment />} title="Status Pembayaran" />
+                     <App render={<PaymentDetail />} title="Status Pembayaran" />
                   </Middleware.After>
                }
             />
