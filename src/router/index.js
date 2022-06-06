@@ -12,11 +12,11 @@ import NewPassword from "../views/Auth/NewPassword";
 
 import Home from "../views/Home";
 import Category from "../views/Category";
-import CategoryDetail from "../views/Category/Detail";
+import CategoryDetail from "../views/Category/CategoryDetail";
 
 import Search from "../views/Search";
-import Products from "../views/Product/";
-import ProductDetail from "../views/Product/Detail";
+import Products from "../views/Product";
+import ProductDetail from "../views/Product/ProductDetail";
 
 import Settings from "../views/Settings";
 import SettingProfile from "../views/Settings/Profile";
@@ -32,7 +32,7 @@ import TutorialDetail from "../views/Article/TutorialDetail";
 import Wishlist from "../views/Wishlist";
 import Cart from "../views/Cart";
 import Order from "../views/Order";
-import OrderDetail from "../views/Order/Detail";
+import OrderDetail from "../views/Order/OrderDetail";
 
 import Checkout from "../views/Checkout";
 import Payment from "../views/Payment";
