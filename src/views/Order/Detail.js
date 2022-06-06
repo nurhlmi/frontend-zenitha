@@ -333,23 +333,20 @@ export default function OrderDetail(props) {
             <DialogContent sx={{ minHeight: "65vh" }} dividers>
                {tracking !== undefined ? (
                   <Stepper orientation="vertical">
-                     {tracking
-                        .slice(0)
-                        .reverse()
-                        .map((value, index) => (
-                           <Step active={true} key={index}>
-                              <StepLabel StepIconComponent={() => CustomStepIcon(index)}>
-                                 <Typography variant="caption" color={index !== 0 && "text.secondary"}>
-                                    {DateFormat(value.manifest_date)}, {value.manifest_time} WIB
-                                 </Typography>
-                              </StepLabel>
-                              <StepContent>
-                                 <Typography variant="caption" color={index !== 0 && "text.secondary"}>
-                                    {value.manifest_description}
-                                 </Typography>
-                              </StepContent>
-                           </Step>
-                        ))}
+                     {tracking.map((value, index) => (
+                        <Step active={true} key={index}>
+                           <StepLabel StepIconComponent={() => CustomStepIcon(index)}>
+                              <Typography variant="caption" color={index !== 0 && "text.secondary"}>
+                                 {DateFormat(value.manifest_date)}, {value.manifest_time} WIB
+                              </Typography>
+                           </StepLabel>
+                           <StepContent>
+                              <Typography variant="caption" color={index !== 0 && "text.secondary"}>
+                                 {value.manifest_description}
+                              </Typography>
+                           </StepContent>
+                        </Step>
+                     ))}
                   </Stepper>
                ) : (
                   <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>
