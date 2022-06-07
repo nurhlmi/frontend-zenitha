@@ -115,8 +115,8 @@ export default function Header(props) {
          })
          .then(() => {
             setAuth({
+               ...auth,
                auth: false,
-               user: null,
             });
             localStorage.clear();
             setBackdrop(false);
