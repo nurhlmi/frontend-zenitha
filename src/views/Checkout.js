@@ -88,6 +88,7 @@ export default function Checkout(props) {
             let value = res.data.data;
             if (value.length > 0) {
                setAddress(value);
+               getGroupDiscount(value[0]);
                setTransaction({
                   ...transaction,
                   address: value[0],
@@ -98,7 +99,8 @@ export default function Checkout(props) {
          });
    };
 
-   const getGroupDiscount = async () => {
+   const [groupDiscount, setGroupDiscount] = useState();
+   const getGroupDiscount = async (address) => {
       await axios
          .get(`${apiUrl}/discount/fetch`, {
             params: {
@@ -111,11 +113,13 @@ export default function Checkout(props) {
          })
          .then((res) => {
             // console.log(res.data.data);
-            getCustomerDiscount(res.data.data);
+            setGroupDiscount(res.data.data);
+            getCustomerDiscount(address, res.data.data);
          });
    };
 
-   const getCustomerDiscount = async (groupDiscount) => {
+   const [customerDiscount, setCustomerDiscount] = useState();
+   const getCustomerDiscount = async (address, groupDiscount) => {
       await axios
          .get(`${apiUrl}/discount/fetch`, {
             params: {
@@ -128,7 +132,8 @@ export default function Checkout(props) {
          })
          .then((res) => {
             // console.log(res.data.data);
-            getCart(groupDiscount, res.data.data);
+            setCustomerDiscount(res.data.data);
+            getCart(address, groupDiscount, res.data.data);
          });
    };
 
@@ -172,7 +177,7 @@ export default function Checkout(props) {
    const [totalBill, setTotalBill] = useState(0);
    const [preOrder, setPreOrder] = useState(0);
    const [cod, setCod] = useState(false);
-   const getCart = async (groupDiscount, customerDiscount) => {
+   const getCart = async (address, groupDiscount, customerDiscount) => {
       await axios
          .get(`${apiUrl}/carts`, {
             headers: {
@@ -199,6 +204,7 @@ export default function Checkout(props) {
                         etd: null,
                         note: null,
                         description: null,
+                        error: null,
                      },
                      payment_method: "none",
                   },
@@ -234,6 +240,7 @@ export default function Checkout(props) {
                            etd: null,
                            note: null,
                            description: null,
+                           error: null,
                         },
                         payment_method: "po",
                      });
@@ -268,57 +275,57 @@ export default function Checkout(props) {
                         value.product_combination.discount_customer = 0;
                         value.product_combination.discount_po = 0;
 
-                        // eslint-disable-next-line array-callback-return
-                        groupDiscount.map((row) => {
-                           if (row.status === "active") {
-                              if (row.category.id === value.product_combination.product.category.id) {
-                                 value.product_combination.discount_group =
-                                    value.product_combination.discount_product_balance -
-                                    Discount(value.product_combination.discount_product_balance, row.discount, row.discount_type);
-                                 value.product_combination.discount_group_balance = Discount(
-                                    value.product_combination.discount_product_balance,
-                                    row.discount,
-                                    row.discount_type
-                                 );
-
-                                 // eslint-disable-next-line array-callback-return
-                                 customerDiscount.map((rows) => {
-                                    if (rows.status === "active") {
-                                       if (rows.category.id === value.product_combination.product.category.id) {
-                                          value.product_combination.discount_customer =
-                                             value.product_combination.discount_group_balance -
-                                             Discount(value.product_combination.discount_group_balance, row.discount, row.discount_type);
-                                          value.product_combination.discount_customer_balance = Discount(
-                                             value.product_combination.discount_group_balance,
-                                             row.discount,
-                                             row.discount_type
-                                          );
-                                       }
-                                    }
-                                 });
-                              }
-                           }
-                           // console.log(row);
-                           // console.log(value);
-                        });
-
-                        if (value.product_combination.discount_customer === 0) {
+                        if (auth.user.role === "customer" || (auth.user.role !== "customer" && address.type === "alone")) {
                            // eslint-disable-next-line array-callback-return
-                           customerDiscount.map((row) => {
+                           groupDiscount.map((row) => {
                               if (row.status === "active") {
                                  if (row.category.id === value.product_combination.product.category.id) {
-                                    value.product_combination.discount_customer =
+                                    value.product_combination.discount_group =
                                        value.product_combination.discount_product_balance -
                                        Discount(value.product_combination.discount_product_balance, row.discount, row.discount_type);
-                                    value.product_combination.discount_customer_balance = Discount(
+                                    value.product_combination.discount_group_balance = Discount(
                                        value.product_combination.discount_product_balance,
                                        row.discount,
                                        row.discount_type
                                     );
+
+                                    // eslint-disable-next-line array-callback-return
+                                    customerDiscount.map((rows) => {
+                                       if (rows.status === "active") {
+                                          if (rows.category.id === value.product_combination.product.category.id) {
+                                             value.product_combination.discount_customer =
+                                                value.product_combination.discount_group_balance -
+                                                Discount(value.product_combination.discount_group_balance, row.discount, row.discount_type);
+                                             value.product_combination.discount_customer_balance = Discount(
+                                                value.product_combination.discount_group_balance,
+                                                row.discount,
+                                                row.discount_type
+                                             );
+                                          }
+                                       }
+                                    });
                                  }
                               }
                            });
+                           if (value.product_combination.discount_customer === 0) {
+                              // eslint-disable-next-line array-callback-return
+                              customerDiscount.map((row) => {
+                                 if (row.status === "active") {
+                                    if (row.category.id === value.product_combination.product.category.id) {
+                                       value.product_combination.discount_customer =
+                                          value.product_combination.discount_product_balance -
+                                          Discount(value.product_combination.discount_product_balance, row.discount, row.discount_type);
+                                       value.product_combination.discount_customer_balance = Discount(
+                                          value.product_combination.discount_product_balance,
+                                          row.discount,
+                                          row.discount_type
+                                       );
+                                    }
+                                 }
+                              });
+                           }
                         }
+
                         value.product_combination.subtotal =
                            value.product_combination.discount_product_balance -
                            value.product_combination.discount_group -
@@ -330,7 +337,6 @@ export default function Checkout(props) {
                         }
                         productsubtotal = productsubtotal + value.product_combination.subtotal;
 
-                        // productprice += value.quantity * value.product_combination.subtotal;
                         productprice += value.product_combination.subtotal;
                         productquantity += value.quantity;
                         if (value.product_combination.product.weight_unit === "kg") {
@@ -347,15 +353,18 @@ export default function Checkout(props) {
                setProductDiscount(Math.round(productdiscount));
                setProductQuantity(productquantity);
                setTotalPrice(productprice - productdiscount);
-               setTotalBill(productprice - productdiscount + shipping - shippingDiscount);
+               setTotalBill(productprice - productdiscount);
+               // setTotalBill(productprice - productdiscount + shipping - shippingDiscount);
+               setShipping(0);
+               setShippingDiscount(0);
             } else {
                navigate("/cart");
             }
             // console.log(newdata);
             setCart(newdata);
          })
-         .catch((err) => {
-            // console.log(err);
+         .catch((xhr) => {
+            // console.log(xhr);
          });
    };
 
@@ -366,7 +375,6 @@ export default function Checkout(props) {
          getSetting();
          getAddress();
          getCourier();
-         getGroupDiscount();
          getShippingDiscount();
       }
       return () => (mounted = false);
@@ -374,10 +382,9 @@ export default function Checkout(props) {
    }, []);
 
    const [loading, setLoading] = useState(false);
-   const [disabled, setDisabled] = useState(false);
    const [shipping, setShipping] = useState(0);
    const [disabledService, setDisabledService] = useState(false);
-   const handleCourier = async (e, weight, before_cost, key) => {
+   const handleCourier = async (e, key, weight, before_cost) => {
       setDisabledService(true);
       const newState = cart.map((obj, index) =>
          index === key
@@ -392,6 +399,7 @@ export default function Checkout(props) {
                     etd: null,
                     note: null,
                     description: null,
+                    error: null,
                  },
               }
             : obj
@@ -434,15 +442,14 @@ export default function Checkout(props) {
             handleService(key, value.results[0].costs[0], before_cost, newStatee);
          })
          .catch((xhr) => {
-            console.log(xhr);
-            setDisabled(true);
+            // console.log(xhr);
          });
    };
 
    const handleService = (key, value, before_cost, newstate) => {
       setAnchorEl(false);
-      let newshipping = shipping - before_cost + value.cost[0].value;
-      setShipping(newshipping);
+      let newShipping = shipping - before_cost + value.cost[0].value;
+      setShipping(newShipping);
       const newState = newstate.map((obj, index) =>
          index === key
             ? {
@@ -462,16 +469,16 @@ export default function Checkout(props) {
       setDisabledService(false);
 
       if (totalPrice >= listShippingDiscount.minimum_price && listShippingDiscount.status === "active") {
-         if (newshipping <= listShippingDiscount.max_shipping_discount) {
-            setShippingDiscount(value.cost[0].value);
+         if (newShipping <= listShippingDiscount.max_shipping_discount) {
+            setShippingDiscount(newShipping);
             setTotalBill(productPrice - productDiscount);
          } else {
             setShippingDiscount(listShippingDiscount.max_shipping_discount);
-            setTotalBill(productPrice - productDiscount + newshipping - listShippingDiscount.max_shipping_discount);
+            setTotalBill(productPrice - productDiscount + newShipping - listShippingDiscount.max_shipping_discount);
          }
       } else {
          setShippingDiscount(0);
-         setTotalBill(productPrice - productDiscount + newshipping);
+         setTotalBill(productPrice - productDiscount + newShipping);
       }
    };
 
@@ -494,7 +501,7 @@ export default function Checkout(props) {
          type: "store",
          marketplace_resi: undefined,
       });
-      setTotalBill(productPrice - productDiscount);
+      getCart(value, groupDiscount, customerDiscount);
    };
 
    const [paymentMethod, setPaymentMethod] = useState([]);
@@ -535,34 +542,52 @@ export default function Checkout(props) {
    const [dialogLoading, setDialogLoading] = useState(false);
    const [bank, setBank] = useState();
    const handleDialog = async () => {
-      // eslint-disable-next-line no-mixed-operators
-      if (
-         auth.user.role === "customer" ||
-         (auth.user.role !== "customer" && transaction.address.type !== "receiver") ||
-         (auth.user.role !== "customer" && transaction.address.type === "receiver" && transaction.type === "store") ||
-         (auth.user.role !== "customer" &&
-            transaction.address.type === "receiver" &&
-            transaction.type === "marketplace" &&
-            transaction.marketplace_resi !== undefined)
-      ) {
-         setLoading(true);
-         setPaymentMethod([]);
-         await axios
-            .get(`${apiUrl}/moota/bank`, {
-               headers: {
-                  Authorization: "Bearer " + token,
-               },
-            })
-            .then((res) => {
-               // console.log(res.data.data);
-               setBank(res.data.data);
-               setDialog(true);
-               setLoading(false);
+      let filter = cart.filter(function (e) {
+         return e.shipping.name == null;
+      });
+      if (filter.length < 1) {
+         if (
+            auth.user.role === "customer" ||
+            (auth.user.role !== "customer" && transaction.address.type !== "receiver") ||
+            (auth.user.role !== "customer" && transaction.address.type === "receiver" && transaction.type === "store") ||
+            (auth.user.role !== "customer" &&
+               transaction.address.type === "receiver" &&
+               transaction.type === "marketplace" &&
+               transaction.marketplace_resi !== undefined)
+         ) {
+            setLoading(true);
+            setPaymentMethod([]);
+            await axios
+               .get(`${apiUrl}/moota/bank`, {
+                  headers: {
+                     Authorization: "Bearer " + token,
+                  },
+               })
+               .then((res) => {
+                  // console.log(res.data.data);
+                  setBank(res.data.data);
+                  setDialog(true);
+                  setLoading(false);
+               });
+         } else {
+            window.scrollTo(0, 0);
+            setError({
+               marketplace_resi: "Upload nomor resi.",
             });
+         }
       } else {
-         setError({
-            marketplace_resi: "Upload nomor resi",
-         });
+         const newState = cart.map((obj, index) =>
+            obj.shipping.name === null
+               ? {
+                    ...obj,
+                    shipping: {
+                       ...obj.shipping,
+                       error: "Pilih kurir pengiriman.",
+                    },
+                 }
+               : obj
+         );
+         setCart(newState);
       }
    };
 
@@ -648,7 +673,7 @@ export default function Checkout(props) {
             }
          })
          .catch((xhr) => {
-            console.log(xhr);
+            // console.log(xhr);
             setDialogLoading(false);
          });
    };
@@ -665,10 +690,10 @@ export default function Checkout(props) {
    };
 
    // const handleConsole = (e) => {
-   //    console.clear();
-   //    console.log(transaction);
-   //    console.log(cart);
-   //    handleSubmit(e);
+   // console.clear();
+   // console.log(transaction);
+   // console.log(cart);
+   // handleSubmit(e);
    // };
 
    return (
@@ -688,7 +713,7 @@ export default function Checkout(props) {
             </Container>
          </AppBar>
          <Container sx={{ flex: 1, my: 3 }}>
-            {setting !== undefined && address !== undefined && cart !== undefined && courier !== undefined && listShippingDiscount !== undefined ? (
+            {setting !== undefined && address !== undefined && courier !== undefined && cart !== undefined && listShippingDiscount !== undefined ? (
                <Fragment>
                   {cart.length > 0 ? (
                      <Grid container spacing={{ xs: 1, sm: 4 }}>
@@ -721,14 +746,11 @@ export default function Checkout(props) {
                            <Box sx={{ mt: 1 }}>
                               {transaction.address.type === "receiver" && auth.user.role !== "customer" && (
                                  <Box sx={{ borderTop: "4px solid #eee", py: 1 }}>
-                                    {/* <FormControlLabel control={<Checkbox />} label="Upload Resi" /> */}
-                                    <Box>
-                                       <FormControlLabel
-                                          control={<Checkbox required={true} />}
-                                          label={<Typography variant="body2">Nomor Resi</Typography>}
-                                          onChange={handleMarketplace}
-                                       />
-                                    </Box>
+                                    <FormControlLabel
+                                       control={<Checkbox required={true} />}
+                                       label={<Typography variant="body2">Nomor Resi</Typography>}
+                                       onChange={handleMarketplace}
+                                    />
                                     {transaction.type === "marketplace" && (
                                        <Box sx={{ mb: 1 }}>
                                           {transaction.marketplace_resi !== undefined ? (
@@ -878,7 +900,7 @@ export default function Checkout(props) {
                                              size="small"
                                              name="courier"
                                              defaultValue="none"
-                                             onChange={(e) => handleCourier(e, val.weight, val.shipping.cost, key)}
+                                             onChange={(e) => handleCourier(e, key, val.weight, val.shipping.cost)}
                                              value={val.courier}
                                              disabled={disabledService}
                                              select
@@ -976,6 +998,11 @@ export default function Checkout(props) {
                                                 <CircularProgress size={20} />
                                              </Box>
                                           )}
+                                          {val.shipping.error !== null && (
+                                             <Typography component="div" variant="caption" color="error" mt={1}>
+                                                {val.shipping.error}
+                                             </Typography>
+                                          )}
                                        </Grid>
                                     </Grid>
                                  </Box>
@@ -1009,7 +1036,7 @@ export default function Checkout(props) {
                                        {NumberFormat(totalBill)}
                                     </Typography>
                                  </Box>
-                                 <LoadingButton variant="contained" size="large" loading={loading} disabled={disabled} onClick={handleDialog} fullWidth>
+                                 <LoadingButton variant="contained" size="large" loading={loading} onClick={handleDialog} fullWidth>
                                     Pilih Pembayaran
                                  </LoadingButton>
                               </CardContent>
