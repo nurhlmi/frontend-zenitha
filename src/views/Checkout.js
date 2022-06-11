@@ -586,10 +586,14 @@ export default function Checkout(props) {
       cart.map((obj, key) => {
          // eslint-disable-next-line array-callback-return
          obj.data.map((value, index) => {
-            formData.append(
-               `transaction[${key}][transaction_product][${index}][product_name]`,
-               `${value.product_name} - ${value.product_combination.combination_string.replaceAll("-", ", ")}`
-            );
+            if (value.product_combination.combination_string !== null) {
+               formData.append(
+                  `transaction[${key}][transaction_product][${index}][product_name]`,
+                  `${value.product_name} - ${value.product_combination.combination_string.replaceAll("-", ", ")}`
+               );
+            } else {
+               formData.append(`transaction[${key}][transaction_product][${index}][product_name]`, value.product_name);
+            }
             formData.append(`transaction[${key}][transaction_product][${index}][product_slug]`, value.product_combination.product_slug);
             formData.append(`transaction[${key}][transaction_product][${index}][image]`, value.product_image);
             formData.append(`transaction[${key}][transaction_product][${index}][price]`, value.product_combination.price);
@@ -1079,7 +1083,7 @@ export default function Checkout(props) {
                   Pilih Metode Pembayaran
                </Typography>
                <FormControl>
-                  <RadioGroup row name="payment_method" onChange={handleChange}>
+                  <RadioGroup name="payment_method" onChange={handleChange}>
                      {bank?.map((value, index) => (
                         <FormControlLabel
                            key={index}
