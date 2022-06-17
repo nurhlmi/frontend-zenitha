@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Container, Box, Typography, CircularProgress, CardContent, Card, Grid, Tooltip, IconButton, Divider } from "@mui/material";
-import { ArrowBack } from "@mui/icons-material";
+import { Container, Box, Typography, CircularProgress, CardContent, Card, Grid, Tooltip, IconButton, Divider, Snackbar } from "@mui/material";
+import { ArrowBack, ContentCopy } from "@mui/icons-material";
 
 import { apiUrl } from "../../variable/Url";
 import { DateFormat, TimeFormat, NumberFormat } from "../../components/Format";
@@ -26,7 +26,7 @@ export default function PaymentDetail(props) {
             setData(res.data.data);
          })
          .catch((xhr) => {
-            console.log(xhr.response);
+            // console.log(xhr.response);
          });
    };
 
@@ -35,6 +35,23 @@ export default function PaymentDetail(props) {
       window.scrollTo(0, 0);
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
+
+   const [message, setMessage] = useState();
+   const [snackbar, setSnackbar] = useState(false);
+   const handleSnackbar = () => {
+      setSnackbar(!snackbar);
+   };
+
+   const handleCopy = (value, type) => {
+      // window.clipboardData.setData("Text", value);
+      navigator.clipboard.writeText(value);
+      if (type === "no_rek") {
+         setMessage("Nomor rekening telah disalin");
+      } else if (type === "total") {
+         setMessage("Total pembayaran telah disalin");
+      }
+      handleSnackbar();
+   };
 
    return (
       <Container sx={{ flex: 1 }}>
@@ -52,23 +69,21 @@ export default function PaymentDetail(props) {
                   </Typography>
                </Box>
                {data !== undefined ? (
-                  <Grid container spacing={2}>
-                     <Grid item xs={12} md={7}>
-                        <Card>
+                  <Grid container justifyContent="center" spacing={2}>
+                     <Grid item xs={12} md={8} lg={7}>
+                        <Card sx={{ mb: 2 }}>
                            <CardContent>
                               <Typography variant="body2" color="text.secondary" gutterBottom>
                                  Status
                               </Typography>
                               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-                                 <Typography variant="body2" fontWeight="bold">
-                                    {PaymentStatus(data.status)}
-                                 </Typography>
+                                 <Typography variant="body2">{PaymentStatus(data.status)}</Typography>
                               </Box>
                               <Typography variant="body2" color="text.secondary" gutterBottom>
                                  Bayar Sebelum
                               </Typography>
                               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                 <Typography variant="body2" fontWeight="bold">
+                                 <Typography variant="body2">
                                     {DateFormat(data.expired_time)}&nbsp;{TimeFormat(data.expired_time)}
                                  </Typography>
                                  <Typography variant="body2" fontWeight="bold" color="#fa591d">
@@ -77,32 +92,36 @@ export default function PaymentDetail(props) {
                               </Box>
                            </CardContent>
                         </Card>
-                     </Grid>
-                     <Grid item xs={12} md={5}>
                         <Card>
                            <CardContent>
                               <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                 <Typography variant="body1" fontWeight="bold">
-                                    Transfer Bank BCA
-                                 </Typography>
-                                 <img alt="Logo Bank BCA" src="/assets/images/logos/bca.png" height="20px" />
+                                 <Typography variant="body1">Transfer Bank {data.bank_name}</Typography>
+                                 <img alt="Logo Bank" src={`/assets/images/logos/${data.bank_name.toLowerCase()}.png`} height="20px" />
                               </Box>
                               <Divider sx={{ my: 2 }} />
+                              <Typography variant="body2" color="text.secondary" gutterBottom>
+                                 Nomor Rekening
+                              </Typography>
+                              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+                                 <Typography variant="body2">{data.no_rek}</Typography>
+                                 <Box sx={{ display: "flex", alignItems: "center", cursor: "pointer" }} onClick={() => handleCopy(data.no_rek, "no_rek")}>
+                                    <Typography variant="caption" fontWeight="bold" pr={1}>
+                                       Salin
+                                    </Typography>
+                                    <ContentCopy fontSize="small" />
+                                 </Box>
+                              </Box>
                               <Typography variant="body2" color="text.secondary" gutterBottom>
                                  Total Belanja
                               </Typography>
                               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-                                 <Typography variant="body2" fontWeight="bold">
-                                    {NumberFormat(data.total - data.unique_code)}
-                                 </Typography>
+                                 <Typography variant="body2">{NumberFormat(data.total - data.unique_code)}</Typography>
                               </Box>
                               <Typography variant="body2" color="text.secondary" gutterBottom>
                                  Kode Unik
                               </Typography>
                               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-                                 <Typography variant="body2" fontWeight="bold">
-                                    {data.unique_code}
-                                 </Typography>
+                                 <Typography variant="body2">{data.unique_code}</Typography>
                               </Box>
                               <Typography variant="body2" color="text.secondary" gutterBottom>
                                  Total Pembayaran
@@ -111,6 +130,12 @@ export default function PaymentDetail(props) {
                                  <Typography variant="body1" fontWeight="bold" color="#fa591d">
                                     {NumberFormat(data.total)}
                                  </Typography>
+                                 <Box sx={{ display: "flex", alignItems: "center", cursor: "pointer" }} onClick={() => handleCopy(data.total, "total")}>
+                                    <Typography variant="caption" fontWeight="bold" pr={1}>
+                                       Salin
+                                    </Typography>
+                                    <ContentCopy fontSize="small" />
+                                 </Box>
                               </Box>
                            </CardContent>
                         </Card>
@@ -123,6 +148,7 @@ export default function PaymentDetail(props) {
                )}
             </Grid>
          </Grid>
+         <Snackbar open={snackbar} autoHideDuration={3000} onClose={handleSnackbar} message={message} />
       </Container>
    );
 }

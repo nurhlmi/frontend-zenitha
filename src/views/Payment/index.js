@@ -1,6 +1,20 @@
 import React from "react";
 import axios from "axios";
-import { Container, Box, Typography, CircularProgress, IconButton, CardContent, Card, Grid, Button, Dialog, DialogContent, Tooltip } from "@mui/material";
+import {
+   Container,
+   Box,
+   Typography,
+   CircularProgress,
+   IconButton,
+   CardContent,
+   Card,
+   Grid,
+   Button,
+   Dialog,
+   DialogContent,
+   Tooltip,
+   Divider,
+} from "@mui/material";
 import { ArrowBack, CloseRounded, ListAltRounded } from "@mui/icons-material";
 
 import { apiUrl } from "../../variable/Url";
@@ -26,11 +40,11 @@ export default function Payment(props) {
             },
          })
          .then((res) => {
-            console.log(res.data);
+            // console.log(res.data);
             setData(res.data);
          })
          .catch((xhr) => {
-            console.log(xhr.response);
+            // console.log(xhr.response);
          });
    };
 
@@ -66,34 +80,43 @@ export default function Payment(props) {
                         {data.data.map((value, index) => (
                            <Card sx={{ mb: 2 }} key={index}>
                               <CardContent key={index}>
-                                 <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                                    <Typography variant="caption" mr={2}>
-                                       {DateFormat(value.created_at)}
-                                    </Typography>
+                                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", mb: 2 }}>
+                                    <Box sx={{ display: "flex", flexDirection: "column" }}>
+                                       <Typography variant="caption" color="text.secondary">
+                                          Pembelian Tanggal
+                                       </Typography>
+                                       <Typography variant="caption" mr={2}>
+                                          {DateFormat(value.created_at)}
+                                       </Typography>
+                                    </Box>
+                                    <Box sx={{ display: "flex", flexDirection: "column", textAlign: "right" }}>
+                                       <Typography variant="caption" color="text.secondary">
+                                          Bayar Sebelum
+                                       </Typography>
+                                       <Typography variant="caption" fontWeight="bold" color="#fa591d">
+                                          {DateFormat(value.expired_time)}&nbsp;{TimeFormat(value.expired_time)}
+                                       </Typography>
+                                    </Box>
                                  </Box>
-                                 <Grid container>
-                                    <Grid item xs>
-                                       <Box sx={{ mr: 2, borderRight: "1px dashed #e0e0e0" }}>
-                                          <Typography variant="body2" color="text.secondary">
-                                             Bayar Sebelum
-                                          </Typography>
-                                          <Typography variant="body2" fontWeight="bold" mb={2}>
-                                             {DateFormat(value.expired_time)}&nbsp;{TimeFormat(value.expired_time)}
-                                          </Typography>
-                                       </Box>
-                                    </Grid>
-                                    <Grid item>
-                                       <Box sx={{ textAlign: "right" }}>
-                                          <Typography variant="body2" color="text.secondary">
-                                             Total Pembayaran
-                                          </Typography>
-                                          <Typography variant="body2" fontWeight="bold" mb={2}>
-                                             {NumberFormat(value.total)}
-                                          </Typography>
-                                       </Box>
-                                    </Grid>
-                                 </Grid>
-                                 <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+                                 <Divider sx={{ mb: 2 }} />
+                                 <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                                    <img alt="Logo Bank" src={`/assets/images/logos/${value.bank_name.toLowerCase()}.png`} height="20px" />
+                                    <Box sx={{ ml: 2 }}>
+                                       <Typography>Transfer Bank {value.bank_name}</Typography>
+                                       <Typography variant="caption" color="text.secondary">
+                                          {value.no_rek}
+                                       </Typography>
+                                    </Box>
+                                 </Box>
+                                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                    <Box>
+                                       <Typography variant="caption" color="text.secondary" gutterBottom>
+                                          Total Pembayaran
+                                       </Typography>
+                                       <Typography variant="body2" fontWeight="bold" mb={2}>
+                                          {NumberFormat(value.total)}
+                                       </Typography>
+                                    </Box>
                                     <Button variant="outlined" component={RouterLink} to={`/payment/${value.id}`}>
                                        Lihat Detail
                                     </Button>

@@ -58,7 +58,7 @@ export default function OrderDetail(props) {
             setTotalPrice(price);
          })
          .catch((xhr) => {
-            console.log(xhr.response);
+            // console.log(xhr.response);
          });
    };
 
@@ -89,7 +89,7 @@ export default function OrderDetail(props) {
                setTracking(res.data.rajaongkir.result.manifest);
             })
             .catch((xhr) => {
-               console.log(xhr.response);
+               // console.log(xhr.response);
             });
       }
    };
@@ -119,7 +119,7 @@ export default function OrderDetail(props) {
                </Box>
                {data !== undefined ? (
                   <Grid container spacing={2}>
-                     <Grid item xs={12} md={7} lg={8}>
+                     <Grid item xs={12} md={7} lg={7.5}>
                         <Card sx={{ mb: 2 }}>
                            <CardContent>
                               <Box sx={{ borderBottom: "1px dashed #e0e0e0", pb: 2, mb: 2 }}>
@@ -266,20 +266,32 @@ export default function OrderDetail(props) {
                            </CardContent>
                         </Card>
                      </Grid>
-                     <Grid item xs={12} md={5} lg={4}>
+                     <Grid item xs={12} md={5} lg={4.5}>
                         <Card>
                            <CardContent>
                               <Box>
                                  <Typography variant="body2" fontWeight="bold" mb={2}>
                                     Rincian Pembayaran
                                  </Typography>
-                                 <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px dashed #e0e0e0", pb: 2, mb: 2 }}>
-                                    <Typography variant="body2" color="text.secondary" pr={2}>
-                                       Metode Pembayaran
-                                    </Typography>
-                                    <Typography variant="body2" textAlign="right">
-                                       {data.payment_method === "cod" ? "COD (Bayar di Tempat)" : `Transfer Bank ${data.bank_name}`}
-                                    </Typography>
+                                 <Box sx={{ borderBottom: "1px dashed #e0e0e0", mb: 2, pb: 2 }}>
+                                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                                       <Typography variant="body2" color="text.secondary" pr={2} gutterBottom>
+                                          Metode Pembayaran
+                                       </Typography>
+                                       <Typography variant="body2" textAlign="right">
+                                          {data.payment_method === "cod" ? "COD (Bayar di Tempat)" : `Transfer Bank ${data.bank_name}`}
+                                       </Typography>
+                                    </Box>
+                                    {data.payment_method === "transfer" && (
+                                       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                                          <Typography variant="body2" color="text.secondary" pr={2} gutterBottom>
+                                             Nomor Rekening
+                                          </Typography>
+                                          <Typography variant="body2" textAlign="right">
+                                             {data.no_rek}
+                                          </Typography>
+                                       </Box>
+                                    )}
                                  </Box>
                                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                                     <Typography variant="body2" color="text.secondary" gutterBottom>
