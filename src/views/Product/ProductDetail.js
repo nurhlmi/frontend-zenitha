@@ -19,6 +19,7 @@ import {
    Snackbar,
    CircularProgress,
    Link,
+   Divider,
 } from "@mui/material";
 import { FavoriteRounded, FavoriteBorderRounded, Add, Remove, Close } from "@mui/icons-material";
 import { LoadingButton } from "@mui/lab";
@@ -59,7 +60,7 @@ export default function ProductDetail(props) {
             auth.auth !== false && getWishlist(auth.user.id, value.product.id);
          })
          .catch((xhr) => {
-            console.log(xhr.response);
+            // console.log(xhr.response);
          });
    };
 
@@ -132,7 +133,7 @@ export default function ProductDetail(props) {
             res.data.data !== null ? setWishlist(true) : setWishlist(false);
          })
          .catch((xhr) => {
-            console.log(xhr.response);
+            // console.log(xhr.response);
          });
    };
    const handleWishlist = async (product_id) => {
@@ -158,7 +159,7 @@ export default function ProductDetail(props) {
                }
             })
             .catch((xhr) => {
-               console.log(xhr.response);
+               // console.log(xhr.response);
             });
       } else {
          navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
@@ -420,79 +421,72 @@ export default function ProductDetail(props) {
                <Grid item xs={12} lg={1} />
                <Grid item xs={12} lg={10}>
                   <Box sx={{ borderTop: "1px solid #e0e0e0", pt: 2 }}>
-                     <Typography fontWeight="bold" mb={1}>
+                     <Typography fontWeight="bold" mb={2}>
                         Detail Produk
                      </Typography>
-                     <table>
-                        <tbody>
-                           <tr>
-                              <td>
-                                 <Typography color="text.secondary">Kondisi</Typography>
-                              </td>
-                              <td>Baru</td>
-                           </tr>
-                           <tr>
-                              <td>
-                                 <Typography color="text.secondary">Berat</Typography>
-                              </td>
-                              <td>
-                                 {product.product_weight} {product.weight_unit}
-                              </td>
-                           </tr>
-                           <tr>
-                              <td>
-                                 <Typography color="text.secondary">Panjang</Typography>
-                              </td>
-                              <td>
-                                 {product?.["length"]} {product.size_unit}
-                              </td>
-                           </tr>
-                           <tr>
-                              <td>
-                                 <Typography color="text.secondary">Tinggi</Typography>
-                              </td>
-                              <td>
-                                 {product.height} {product.size_unit}
-                              </td>
-                           </tr>
-                           {data.sku !== null && (
-                              <tr>
-                                 <td>
-                                    <Typography color="text.secondary">SKU</Typography>
-                                 </td>
-                                 <td>{data.sku}</td>
-                              </tr>
-                           )}
-                           {product.preorder !== 0 && (
-                              <tr>
-                                 <td>
-                                    <Typography color="text.secondary">Waktu Pre-Order</Typography>
-                                 </td>
-                                 <td>
-                                    {product.duration} {product.duration_unit === "day" && "Hari"}
-                                    {product.duration_unit === "week" && "Minggu"}
-                                    {product.duration_unit === "month" && "Bulan"}
-                                 </td>
-                              </tr>
-                           )}
-                           <tr>
-                              <td>
-                                 <Typography color="text.secondary">Kategori</Typography>
-                              </td>
-                              <td>
-                                 <Link
-                                    component={RouterLink}
-                                    to={`/category/${product.category.category_slug}/${product.sub_category.sub_category_slug}`}
-                                    underline="none"
-                                 >
-                                    <Typography fontWeight="bold">{product.sub_category.sub_category_name}</Typography>
-                                 </Link>
-                              </td>
-                           </tr>
-                        </tbody>
-                     </table>
+                     <Box sx={{ display: "flex", mb: 0.5 }}>
+                        <Typography variant="body2" color="text.secondary">
+                           Kondisi:&nbsp;
+                        </Typography>
+                        <Typography variant="body2">Baru</Typography>
+                     </Box>
+                     <Box sx={{ display: "flex", mb: 0.5 }}>
+                        <Typography variant="body2" color="text.secondary">
+                           Berat:&nbsp;
+                        </Typography>
+                        <Typography variant="body2">
+                           {product.product_weight} {product.weight_unit}
+                        </Typography>
+                     </Box>
+                     <Box sx={{ display: "flex", mb: 0.5 }}>
+                        <Typography variant="body2" color="text.secondary">
+                           Panjang:&nbsp;
+                        </Typography>
+                        <Typography variant="body2">
+                           {product?.["length"]} {product.size_unit}
+                        </Typography>
+                     </Box>
+                     <Box sx={{ display: "flex", mb: 0.5 }}>
+                        <Typography variant="body2" color="text.secondary">
+                           Tinggi:&nbsp;
+                        </Typography>
+                        <Typography variant="body2">
+                           {product.height} {product.size_unit}
+                        </Typography>
+                     </Box>
+                     {data.sku !== null && (
+                        <Box sx={{ display: "flex", mb: 0.5 }}>
+                           <Typography variant="body2" color="text.secondary">
+                              SKU:&nbsp;
+                           </Typography>
+                           <Typography variant="body2">{data.sku}</Typography>
+                        </Box>
+                     )}
+                     {product.preorder !== 0 && (
+                        <Box sx={{ display: "flex", mb: 0.5 }}>
+                           <Typography variant="body2" color="text.secondary">
+                              Waktu Pre-Order:&nbsp;
+                           </Typography>
+                           <Typography variant="body2">
+                              {product.duration} {product.duration_unit === "day" && "Hari"}
+                              {product.duration_unit === "week" && "Minggu"}
+                              {product.duration_unit === "month" && "Bulan"}
+                           </Typography>
+                        </Box>
+                     )}
+                     <Box sx={{ display: "flex", mb: 0.5 }}>
+                        <Typography variant="body2" color="text.secondary">
+                           Kategori:&nbsp;
+                        </Typography>
+                        <Link component={RouterLink} to={`/category/${product.category.id}/${product.sub_category.id}`} underline="none">
+                           <Typography variant="body2" fontWeight="bold">
+                              {product.sub_category.sub_category_name}
+                           </Typography>
+                        </Link>
+                     </Box>
+                     <Divider sx={{ pt: 2, mb: 2 }} />
                      <Typography
-                        variant="body1"
+                        variant="body2"
                         dangerouslySetInnerHTML={{
                            __html: product.description,
                         }}
