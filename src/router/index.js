@@ -83,7 +83,7 @@ function Router() {
 
             <Route path="/search" element={<App render={<Search />} title="Cari Produk" />} />
             <Route path="/products" element={<App render={<Products />} title="Semua Produk" />} />
-            <Route path="/product/:slug" element={<App render={<ProductDetail />} title="Detail Produk" />} />
+            <Route path="/product/:slug" element={<App render={<ProductDetail />} title="Loading..." />} />
 
             <Route path="/article-tutorial" element={<App render={<ArticleTutorial />} title="Artikel & Tutorial" />} />
             <Route path="/article" element={<App render={<Article />} title="Artikel" />} />

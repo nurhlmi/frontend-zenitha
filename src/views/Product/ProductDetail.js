@@ -29,7 +29,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
 import { authentication } from "../../store/Authentication";
 import { carts } from "../../store/Carts";
-import { apiUrl } from "../../variable/Url";
+import { apiUrl, title } from "../../variable/Url";
 import { NumberFormat } from "../../components/Format";
 import { YoutubeParser } from "../../components/YoutubeParser";
 
@@ -58,6 +58,7 @@ export default function ProductDetail(props) {
             setProduct(value.product);
             setQuantity(value.product.minimum_order);
             auth.auth !== false && getWishlist(auth.user.id, value.product.id);
+            document.title = `${value.product.product_name}${title}`;
          })
          .catch((xhr) => {
             // console.log(xhr.response);
