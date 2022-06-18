@@ -16,7 +16,7 @@ export default function Footer(props) {
             setSetting(res.data.data);
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
          });
    };
 
@@ -33,7 +33,7 @@ export default function Footer(props) {
             setCategory(res.data.data);
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
          });
    };
 
@@ -101,7 +101,7 @@ export default function Footer(props) {
                         {category.map((value, index) => (
                            <Grid item xs={12} key={index}>
                               <Typography variant="body2" color="text.secondary">
-                                 <Link component={RouterLink} to={`/category/${value.category_slug}`} underline="none" color="inherit">
+                                 <Link component={RouterLink} to={`/category/${value.id}`} underline="none" color="inherit">
                                     {value.category_name}
                                  </Link>
                               </Typography>

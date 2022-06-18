@@ -1,5 +1,4 @@
 import * as React from "react";
-import axios from "axios";
 import {
    AppBar,
    Avatar,
@@ -34,6 +33,7 @@ import {
    ShoppingBagOutlined,
 } from "@mui/icons-material";
 
+import axios from "axios";
 import { apiUrl } from "../../variable/Url";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
@@ -42,20 +42,10 @@ import { carts } from "../../store/Carts";
 import { search } from "../../store/Search";
 
 export default function Header(props) {
-   const [anchorEl, setAnchorEl] = React.useState(null);
-   const open = Boolean(anchorEl);
-   const handleClick = (event) => {
-      setAnchorEl(event.currentTarget);
-   };
-   const handleClose = () => {
-      setAnchorEl(null);
-   };
-
    const navigate = useNavigate();
    const [auth, setAuth] = useRecoilState(authentication);
    const [cart] = useRecoilState(carts);
    const token = localStorage.getItem("token");
-   const [modal, setModal] = React.useState(false);
 
    const [setting, setSetting] = React.useState();
    const getSetting = async () => {
@@ -66,7 +56,7 @@ export default function Header(props) {
             setSetting(res.data.data);
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
          });
    };
 
@@ -83,7 +73,7 @@ export default function Header(props) {
             setCategory(res.data.data);
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
          });
    };
 
@@ -92,6 +82,11 @@ export default function Header(props) {
       getCategory();
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
+
+   const [modal, setModal] = React.useState(false);
+   const handleModal = (e) => {
+      setModal(!modal);
+   };
 
    const [searchProduct, setSearchProduct] = useRecoilState(search);
    const [input, setInput] = React.useState(searchProduct);
@@ -123,9 +118,18 @@ export default function Header(props) {
             navigate("/");
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
             // let responseError = err.response.data.data;
          });
+   };
+
+   const [anchorEl, setAnchorEl] = React.useState(null);
+   const open = Boolean(anchorEl);
+   const handleClick = (event) => {
+      setAnchorEl(event.currentTarget);
+   };
+   const handleClose = () => {
+      setAnchorEl(null);
    };
 
    return (
@@ -167,7 +171,7 @@ export default function Header(props) {
                               </Box>
                            </Box>
                            <Button
-                              onClick={() => setModal(!modal)}
+                              onClick={handleModal}
                               onMouseOver={() => setModal(true)}
                               color="inherit"
                               sx={{ display: { xs: "none", sm: "flex" }, alignItems: "center", p: 0.5, mx: 1 }}
@@ -187,11 +191,14 @@ export default function Header(props) {
                                        {category.map((value, index) => (
                                           <Grid item xs={12} sm={6} md={4} lg={3} mb={2} key={index}>
                                              <Stack
-                                                direction="row"
-                                                divider={<Divider orientation="vertical" flexItem />}
+                                                onClick={handleModal}
+                                                component={RouterLink}
+                                                to={`/category/${value.id}`}
                                                 spacing={1}
+                                                direction="row"
                                                 alignItems="center"
-                                                sx={{ pb: 1 }}
+                                                divider={<Divider orientation="vertical" flexItem />}
+                                                sx={{ pb: 1, textDecoration: "none", color: "black" }}
                                              >
                                                 <img alt={value.category_name} src={value.image_url} height="30" />
                                                 <Typography variant="button">{value.category_name}</Typography>
@@ -203,7 +210,8 @@ export default function Header(props) {
                                                       <Typography variant="body2" color="text.secondary">
                                                          <Link
                                                             component={RouterLink}
-                                                            to={`/category/${value.category_slug}/${row.sub_category_slug}`}
+                                                            to={`/category/${value.id}/${row.id}`}
+                                                            onClick={handleModal}
                                                             underline="none"
                                                             color="inherit"
                                                          >

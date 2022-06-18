@@ -7,16 +7,17 @@ import { apiUrl, title } from "../../variable/Url";
 import { ProductCard } from "../../components/Card";
 import { useParams } from "react-router-dom";
 
-export default function CategoryDetail(props) {
-   const { category_id } = useParams();
+export default function SubCategoryDetail(props) {
+   // eslint-disable-next-line no-unused-vars
+   const { category_id, sub_category_id } = useParams();
 
    const [category, setCategory] = useState();
    const getCategory = async () => {
-      await axios.get(`${apiUrl}/category/show/${category_id}`).then((res) => {
+      await axios.get(`${apiUrl}/sub_category/show/${sub_category_id}`).then((res) => {
          // console.log(res.data.data);
          let value = res.data.data;
-         setCategory(value.category_name);
-         document.title = `Kategori ${value.category_name}${title}`;
+         setCategory(value.sub_category_name);
+         document.title = `Kategori ${value.sub_category_name}${title}`;
       });
    };
 
@@ -27,7 +28,7 @@ export default function CategoryDetail(props) {
       await axios
          .get(`${apiUrl}/product/fetch`, {
             params: {
-               category_id: category_id,
+               sub_category_id: sub_category_id,
                page: page,
                limit: 25,
             },
@@ -43,7 +44,7 @@ export default function CategoryDetail(props) {
       window.scrollTo(0, 0);
       getData();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [category_id, page]);
+   }, [sub_category_id, page]);
 
    const handleChangePage = (event, value) => {
       if (value !== page) {

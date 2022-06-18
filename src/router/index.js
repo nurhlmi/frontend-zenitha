@@ -13,6 +13,7 @@ import NewPassword from "../views/Auth/NewPassword";
 import Home from "../views/Home";
 import Category from "../views/Category";
 import CategoryDetail from "../views/Category/CategoryDetail";
+import SubCategoryDetail from "../views/Category/SubCategoryDetail";
 
 import Search from "../views/Search";
 import Products from "../views/Product";
@@ -77,7 +78,8 @@ function Router() {
             />
 
             <Route path="/category" element={<App render={<Category />} title="Kategori" />} />
-            <Route path="/category/:brand_id/:category_id" element={<App render={<CategoryDetail />} title="Detail Kategori" />} />
+            <Route path="/category/:category_id" element={<App render={<CategoryDetail />} title="Loading..." />} />
+            <Route path="/category/:category_id/:sub_category_id" element={<App render={<SubCategoryDetail />} title="Loading..." />} />
 
             <Route path="/search" element={<App render={<Search />} title="Cari Produk" />} />
             <Route path="/products" element={<App render={<Products />} title="Semua Produk" />} />

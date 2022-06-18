@@ -19,7 +19,7 @@ export default function Category(props) {
             setCategory(res.data.data);
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
          });
    };
 
@@ -30,14 +30,22 @@ export default function Category(props) {
 
    return (
       <Container>
-         <Typography variant="h6" py={3}>
+         <Typography variant="h6" fontWeight="bold" py={3}>
             Kategori
          </Typography>
          {category.length > 0 ? (
             <Grid container spacing={2}>
                {category.map((value, index) => (
                   <Grid item xs={12} sm={6} md={4} lg mb={2} key={index}>
-                     <Stack direction="row" divider={<Divider orientation="vertical" flexItem />} spacing={1} alignItems="center" sx={{ pb: 1 }}>
+                     <Stack
+                        component={RouterLink}
+                        to={`/category/${value.id}`}
+                        spacing={1}
+                        direction="row"
+                        alignItems="center"
+                        divider={<Divider orientation="vertical" flexItem />}
+                        sx={{ pb: 1, textDecoration: "none", color: "black" }}
+                     >
                         <img alt={value.category_name} src={value.image_url} height="30" />
                         <Typography variant="button">{value.category_name}</Typography>
                      </Stack>
@@ -46,7 +54,7 @@ export default function Category(props) {
                         {value.sub_category.map((row, index) => (
                            <Grid item xs={6} key={index}>
                               <Typography variant="body2" color="text.secondary">
-                                 <Link component={RouterLink} to={`/category/${value.category_slug}/${row.sub_category_slug}`} underline="none" color="inherit">
+                                 <Link component={RouterLink} to={`/category/${value.id}/${row.id}`} underline="none" color="inherit">
                                     {row.sub_category_name}
                                  </Link>
                               </Typography>
