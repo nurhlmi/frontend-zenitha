@@ -3,7 +3,7 @@ import { Container, Box, Typography, Grid, CircularProgress, Pagination } from "
 import { LocalMallOutlined } from "@mui/icons-material";
 
 import axios from "axios";
-import { apiUrl } from "../variable/Url";
+import { apiUrl, title } from "../variable/Url";
 import { ProductCard } from "../components/Card";
 import { useRecoilState } from "recoil";
 import { search } from "../store/Search";
@@ -28,11 +28,12 @@ export default function Search(props) {
    };
 
    useEffect(() => {
-      setData(undefined);
       window.scrollTo(0, 0);
+      document.title = `Cari ${searchProduct}${title}`;
+      setData(undefined);
       getData();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [page, search]);
+   }, [page, searchProduct]);
 
    const handleChangePage = (event, value) => {
       if (value !== page) {

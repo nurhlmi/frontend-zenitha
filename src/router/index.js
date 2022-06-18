@@ -81,7 +81,7 @@ function Router() {
             <Route path="/category/:category_id" element={<App render={<CategoryDetail />} title="Loading..." />} />
             <Route path="/category/:category_id/:sub_category_id" element={<App render={<SubCategoryDetail />} title="Loading..." />} />
 
-            <Route path="/search" element={<App render={<Search />} title="Cari Produk" />} />
+            <Route path="/search" element={<App render={<Search />} />} />
             <Route path="/products" element={<App render={<Products />} title="Semua Produk" />} />
             <Route path="/product/:slug" element={<App render={<ProductDetail />} title="Loading..." />} />
 
