@@ -1,13 +1,40 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Container, Box, Typography, CircularProgress, CardContent, Card, Grid, Tooltip, IconButton, Divider, Snackbar } from "@mui/material";
-import { ArrowBack, ContentCopy } from "@mui/icons-material";
+import {
+   Container,
+   Box,
+   Typography,
+   CircularProgress,
+   CardContent,
+   Card,
+   Grid,
+   Tooltip,
+   IconButton,
+   Divider,
+   Snackbar,
+   Button,
+   FormControl,
+   Dialog,
+   DialogContent,
+   DialogActions,
+} from "@mui/material";
+import { ArrowBack, ContentCopy, ImageOutlined } from "@mui/icons-material";
 
 import { apiUrl } from "../../variable/Url";
 import { DateFormat, TimeFormat, NumberFormat } from "../../components/Format";
 import { PaymentStatus } from "../../components/PaymentStatus";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import Countdown from "react-countdown";
+
+let stagingBox = {
+   color: "#000",
+   border: "1px solid #eee",
+   display: "inline-block",
+   maxWidth: "100%",
+   cursor: "pointer",
+   borderRadius: 1,
+   p: 1,
+};
 
 export default function PaymentDetail(props) {
    const { id } = useParams();
@@ -40,6 +67,42 @@ export default function PaymentDetail(props) {
    const [snackbar, setSnackbar] = useState(false);
    const handleSnackbar = () => {
       setSnackbar(!snackbar);
+   };
+
+   const handleEvidence = async (e) => {
+      if (e.target.files[0] !== undefined) {
+         let formData = new FormData();
+         formData.append("evidence", e.target.files[0]);
+         await axios
+            .post(`${apiUrl}/transaction/payment/upload_evidence/${id}`, formData, {
+               headers: {
+                  Authorization: "Bearer " + token,
+               },
+            })
+            .then((res) => {
+               // console.log(res.data.data);
+               setData({
+                  ...data,
+                  evidence: res.data.data.evidence,
+               });
+               setMessage("Bukti pembayaran telah dikirim");
+               handleSnackbar();
+            })
+            .catch((xhr) => {
+               // console.log(xhr.response);
+            });
+      }
+   };
+
+   const [preview, setPreview] = useState();
+   const handlePreview = (e) => {
+      setPreview(e);
+      handleDialog();
+   };
+
+   const [dialog, setDialog] = useState(false);
+   const handleDialog = () => {
+      setDialog(!dialog);
    };
 
    const handleCopy = (value, type) => {
@@ -137,6 +200,33 @@ export default function PaymentDetail(props) {
                                     <ContentCopy fontSize="small" />
                                  </Box>
                               </Box>
+                              {data.evidence === null ? (
+                                 <FormControl margin="normal" fullWidth>
+                                    <Button variant="outlined" size="large" component="label">
+                                       Kirim Bukti Pembayaran
+                                       <input name="evidence" type="file" accept="image/*" hidden onChange={handleEvidence} />
+                                    </Button>
+                                 </FormControl>
+                              ) : (
+                                 <Box sx={{ mt: 2 }}>
+                                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                                       Bukti Pembayaran
+                                    </Typography>
+                                    <Box sx={stagingBox}>
+                                       <Box sx={{ display: "flex", alignItems: "center" }}>
+                                          <ImageOutlined fontSize="small" />
+                                          <Tooltip
+                                             title={data.evidence.evidence_url.substring(data.evidence.evidence_url.lastIndexOf("/") + 1)}
+                                             onClick={() => handlePreview(data.evidence.evidence_url)}
+                                          >
+                                             <Typography variant="body2" sx={{ flex: 1 }} mx={1} noWrap>
+                                                {data.evidence.evidence_url.substring(data.evidence.evidence_url.lastIndexOf("/") + 1)}
+                                             </Typography>
+                                          </Tooltip>
+                                       </Box>
+                                    </Box>
+                                 </Box>
+                              )}
                            </CardContent>
                         </Card>
                      </Grid>
@@ -148,6 +238,15 @@ export default function PaymentDetail(props) {
                )}
             </Grid>
          </Grid>
+         <Dialog open={dialog} onClose={handleDialog} scroll="paper">
+            <DialogContent>
+               <img alt="Preview" src={preview} width="100%" />
+            </DialogContent>
+            <Divider />
+            <DialogActions>
+               <Button onClick={handleDialog}>Tutup</Button>
+            </DialogActions>
+         </Dialog>
          <Snackbar open={snackbar} autoHideDuration={3000} onClose={handleSnackbar} message={message} />
       </Container>
    );
