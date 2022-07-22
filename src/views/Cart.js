@@ -82,6 +82,14 @@ export default function Cart(props) {
                            userdiscount += value.product_combination.price * (value.product_combination.product.discount_user.discount / 100);
                         }
                      }
+                  } else {
+                     if (value.product_combination.product.discount_user !== null) {
+                        if (value.product_combination.product.discount_user.discount_type === "rp") {
+                           userdiscount += value.product_combination.product.discount_user.discount;
+                        } else {
+                           userdiscount += value.product_combination.price * (value.product_combination.product.discount_user.discount / 100);
+                        }
+                     }
                   }
                   productquantity += value.quantity;
                }

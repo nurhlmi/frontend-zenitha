@@ -7,7 +7,6 @@ function ProductCard(props) {
    let discount = 0;
    let discount_balance = props.price;
    let percent = 0;
-
    if (props.discount !== null) {
       if (props.discount_type === "rp") {
          discount = discount + props.discount;
@@ -20,7 +19,6 @@ function ProductCard(props) {
          percent = percent + props.discount;
       }
    }
-
    if (props.discount_group !== null) {
       if (props.discount_group.discount_type === "rp") {
          discount = discount + props.discount_group.discount;
@@ -32,7 +30,19 @@ function ProductCard(props) {
          discount_balance = discount_balance - convert_discount;
          percent = percent + props.discount_group.discount;
       }
-
+      if (props.discount_user !== null) {
+         if (props.discount_user.discount_type === "rp") {
+            discount = discount + props.discount_user.discount;
+            discount_balance = discount_balance - props.discount_user.discount;
+            percent = Math.round((discount / props.price) * 100);
+         } else {
+            let convert_discount = (props.price * props.discount_user.discount) / 100;
+            discount = discount + convert_discount;
+            discount_balance = discount_balance - convert_discount;
+            percent = percent + props.discount_user.discount;
+         }
+      }
+   } else {
       if (props.discount_user !== null) {
          if (props.discount_user.discount_type === "rp") {
             discount = discount + props.discount_user.discount;

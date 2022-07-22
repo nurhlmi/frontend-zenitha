@@ -6,9 +6,12 @@ import axios from "axios";
 import { apiUrl, title } from "../../variable/Url";
 import { ProductCard } from "../../components/Card";
 import { useParams } from "react-router-dom";
+import { useRecoilState } from "recoil";
+import { authentication } from "../../store/Authentication";
 
 export default function CategoryDetail(props) {
    const { category_id } = useParams();
+   const [auth] = useRecoilState(authentication);
 
    const [category, setCategory] = useState();
    const getCategory = async () => {
@@ -22,11 +25,18 @@ export default function CategoryDetail(props) {
 
    const [page, setPage] = useState(1);
    const [data, setData] = useState();
+   let params;
+   if (auth.auth === true) {
+      params = {
+         user_id: auth.user.id,
+      };
+   }
    const getData = async () => {
       getCategory();
       await axios
          .get(`${apiUrl}/product/fetch`, {
             params: {
+               ...params,
                category_id: category_id,
                page: page,
                limit: 25,
@@ -75,6 +85,8 @@ export default function CategoryDetail(props) {
                               price={value.price}
                               discount={value.discount}
                               discount_type={value.discount_type}
+                              discount_group={value.discount_group}
+                              discount_user={value.discount_user}
                            />
                         </Grid>
                      ))}
