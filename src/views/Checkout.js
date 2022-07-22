@@ -842,7 +842,7 @@ export default function Checkout(props) {
                                                 <Box sx={{ mb: 1 }}>
                                                    {value.product_combination.discount_group !== 0 && (
                                                       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                                         <Typography variant="body2" color="text.secondary">
+                                                         <Typography variant="body2" color="text.secondary" sx={{ textTransform: "capitalize" }}>
                                                             Diskon {auth.user.role}
                                                          </Typography>
                                                          <Typography variant="body2" color="text.secondary">
@@ -853,7 +853,7 @@ export default function Checkout(props) {
                                                    {value.product_combination.discount_customer !== 0 && (
                                                       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5 }}>
                                                          <Typography variant="body2" color="text.secondary">
-                                                            Diskon pelanggan
+                                                            Diskon Pelanggan
                                                          </Typography>
                                                          <Typography variant="body2" color="text.secondary">
                                                             -{NumberFormat(value.product_combination.discount_customer)}

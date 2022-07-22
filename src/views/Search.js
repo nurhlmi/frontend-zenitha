@@ -7,19 +7,29 @@ import { apiUrl, title } from "../variable/Url";
 import { ProductCard } from "../components/Card";
 import { useRecoilState } from "recoil";
 import { search } from "../store/Search";
+import { authentication } from "../store/Authentication";
 
-export default function Search(props) {
+export default function Search() {
+   const [auth] = useRecoilState(authentication);
    const [searchProduct] = useRecoilState(search);
+
    const [page, setPage] = useState(1);
    const [data, setData] = useState();
+   let params = {
+      search: searchProduct,
+      page: page,
+      limit: 25,
+   };
+   if (auth.auth === true) {
+      params = {
+         ...params,
+         user_id: auth.user.id,
+      };
+   }
    const getData = async () => {
       await axios
          .get(`${apiUrl}/product/fetch`, {
-            params: {
-               search: searchProduct,
-               page: page,
-               limit: 25,
-            },
+            params: params,
          })
          .then((res) => {
             // console.log(res.data.data);
@@ -61,6 +71,8 @@ export default function Search(props) {
                               price={value.price}
                               discount={value.discount}
                               discount_type={value.discount_type}
+                              discount_group={value.discount_group}
+                              discount_user={value.discount_user}
                            />
                         </Grid>
                      ))}

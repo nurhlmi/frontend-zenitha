@@ -1,12 +1,13 @@
-import React from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
 import { Container, Box, Typography, Grid, CircularProgress, Snackbar, IconButton } from "@mui/material";
 import { Close, FavoriteRounded, FavoriteBorderRounded } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 
+import axios from "axios";
 import { apiUrl } from "../variable/Url";
 import { ProductCard } from "../components/Card";
-// import { Link as RouterLink } from "react-router-dom";
+import { useRecoilState } from "recoil";
+import { authentication } from "../store/Authentication";
 
 const useStyles = makeStyles((theme) => ({
    customHoverFocus: {
@@ -16,13 +17,22 @@ const useStyles = makeStyles((theme) => ({
    },
 }));
 
-export default function Wishlist(props) {
+export default function Wishlist() {
    const classes = useStyles();
    const token = localStorage.getItem("token");
-   const [data, setData] = React.useState();
+   const [auth] = useRecoilState(authentication);
+
+   const [data, setData] = useState();
+   let params;
+   if (auth.auth === true) {
+      params = {
+         user_id: auth.user.id,
+      };
+   }
    const getData = async () => {
       await axios
          .get(`${apiUrl}/user_wishlist/fetch`, {
+            params: params,
             headers: {
                Authorization: "Bearer " + token,
             },
@@ -33,14 +43,14 @@ export default function Wishlist(props) {
          });
    };
 
-   React.useEffect(() => {
+   useEffect(() => {
       getData();
       window.scrollTo(0, 0);
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
 
-   const [snackbar, setSnackbar] = React.useState(false);
-   const [message, setMessage] = React.useState();
+   const [snackbar, setSnackbar] = useState(false);
+   const [message, setMessage] = useState();
    const handleWishlist = async (e, product_id) => {
       e.preventDefault();
       await axios
@@ -56,7 +66,7 @@ export default function Wishlist(props) {
             setMessage("Barang telah dihapus dari Wishlist");
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
          });
    };
 
@@ -78,6 +88,8 @@ export default function Wishlist(props) {
                            price={value.product.price}
                            discount={value.product.discount}
                            discount_type={value.product.discount_type}
+                           discount_group={value.product.discount_group}
+                           discount_user={value.product.discount_user}
                            wishlist={
                               <IconButton className={classes.customHoverFocus} onClick={(e) => handleWishlist(e, value.id)}>
                                  <FavoriteRounded fontSize="small" color="error" />

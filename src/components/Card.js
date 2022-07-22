@@ -4,17 +4,49 @@ import { Link as RouterLink } from "react-router-dom";
 import { NumberFormat } from "./Format";
 
 function ProductCard(props) {
-   let discount = null;
-   let percent = null;
+   let discount = 0;
+   let discount_balance = props.price;
+   let percent = 0;
+
    if (props.discount !== null) {
       if (props.discount_type === "rp") {
-         discount = props.price - props.discount;
-         percent = Math.round((props.discount / props.price) * 100);
+         discount = discount + props.discount;
+         discount_balance = discount_balance - props.discount;
+         percent = Math.round((discount / props.price) * 100);
       } else {
-         discount = props.price - (props.price * props.discount) / 100;
-         percent = props.discount;
+         let convert_discount = (props.price * props.discount) / 100;
+         discount = discount + convert_discount;
+         discount_balance = discount_balance - convert_discount;
+         percent = percent + props.discount;
       }
    }
+
+   if (props.discount_group !== null) {
+      if (props.discount_group.discount_type === "rp") {
+         discount = discount + props.discount_group.discount;
+         discount_balance = discount_balance - props.discount_group.discount;
+         percent = Math.round((discount / props.price) * 100);
+      } else {
+         let convert_discount = (props.price * props.discount_group.discount) / 100;
+         discount = discount + convert_discount;
+         discount_balance = discount_balance - convert_discount;
+         percent = percent + props.discount_group.discount;
+      }
+
+      if (props.discount_user !== null) {
+         if (props.discount_user.discount_type === "rp") {
+            discount = discount + props.discount_user.discount;
+            discount_balance = discount_balance - props.discount_user.discount;
+            percent = Math.round((discount / props.price) * 100);
+         } else {
+            let convert_discount = (props.price * props.discount_user.discount) / 100;
+            discount = discount + convert_discount;
+            discount_balance = discount_balance - convert_discount;
+            percent = percent + props.discount_user.discount;
+         }
+      }
+   }
+
    return (
       <Card sx={{ height: "100%" }}>
          <CardActionArea component={RouterLink} to={`/product/${props.slug}`} sx={{ height: "100%" }}>
@@ -25,9 +57,9 @@ function ProductCard(props) {
                   {props.name}
                </Typography>
                <Typography gutterBottom variant="subtitle2" component="div" fontWeight="bold">
-                  {props.discount !== null ? NumberFormat(discount) : NumberFormat(props.price)}
+                  {percent !== 0 ? NumberFormat(discount_balance) : NumberFormat(props.price)}
                </Typography>
-               {props.discount !== null && (
+               {percent !== 0 && (
                   <React.Fragment>
                      <Box sx={{ display: "inline", background: "#ffeaef", borderRadius: 0.5, px: 0.5, pb: 0.4, mr: 1 }}>
                         <Typography variant="caption" color="#ff5c84" fontWeight="bold">

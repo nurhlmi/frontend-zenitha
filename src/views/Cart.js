@@ -1,5 +1,4 @@
-import React from "react";
-import axios from "axios";
+import React, { Fragment, useEffect, useState } from "react";
 import {
    Container,
    Box,
@@ -20,24 +19,33 @@ import {
 } from "@mui/material";
 import { Add, Remove, Close, DeleteOutlineRounded, ShoppingCartOutlined } from "@mui/icons-material";
 
-import { useRecoilState } from "recoil";
+import axios from "axios";
 import { Link as RouterLink } from "react-router-dom";
 
-import { carts } from "../store/Carts";
 import { apiUrl } from "../variable/Url";
 import { NumberFormat } from "../components/Format";
+import { Calculate } from "../components/Calculate";
+import { useRecoilState } from "recoil";
+import { authentication } from "../store/Authentication";
+import { carts } from "../store/Carts";
 
 export default function Cart(props) {
    const token = localStorage.getItem("token");
+   const [auth] = useRecoilState(authentication);
 
-   const [data, setData] = React.useState();
-   const [productPrice, setProductPrice] = React.useState(0);
-   const [productDiscount, setProductDiscount] = React.useState(0);
-   const [productQuantity, setProductQuantity] = React.useState(0);
-   const [totalPrice, setTotalPrice] = React.useState(0);
+   const [data, setData] = useState();
+   const [productPrice, setProductPrice] = useState(0);
+   const [productDiscount, setProductDiscount] = useState(0);
+   const [groupDiscount, setGroupDiscount] = useState(0);
+   const [userDiscount, setUserDiscount] = useState(0);
+   const [productQuantity, setProductQuantity] = useState(0);
+   const [totalPrice, setTotalPrice] = useState(0);
    const getData = async () => {
       await axios
          .get(`${apiUrl}/carts`, {
+            params: {
+               user_id: auth.user.id,
+            },
             headers: {
                Authorization: "Bearer " + token,
             },
@@ -47,6 +55,8 @@ export default function Cart(props) {
             setData(res.data.data);
             let productprice = 0;
             let productdiscount = 0;
+            let groupdiscount = 0;
+            let userdiscount = 0;
             let productquantity = 0;
             // eslint-disable-next-line array-callback-return
             res.data.data.map((value) => {
@@ -59,40 +69,36 @@ export default function Cart(props) {
                         productdiscount += value.quantity * (value.product_combination.price * (value.product_combination.product.discount / 100));
                      }
                   }
+                  if (value.product_combination.product.discount_group !== null) {
+                     if (value.product_combination.product.discount_group.discount_type === "rp") {
+                        groupdiscount += value.product_combination.product.discount_group.discount;
+                     } else {
+                        groupdiscount += value.product_combination.price * (value.product_combination.product.discount_group.discount / 100);
+                     }
+                     if (value.product_combination.product.discount_user !== null) {
+                        if (value.product_combination.product.discount_user.discount_type === "rp") {
+                           userdiscount += value.product_combination.product.discount_user.discount;
+                        } else {
+                           userdiscount += value.product_combination.price * (value.product_combination.product.discount_user.discount / 100);
+                        }
+                     }
+                  }
                   productquantity += value.quantity;
                }
             });
             setProductPrice(productprice);
             setProductDiscount(Math.round(productdiscount));
+            setGroupDiscount(Math.round(groupdiscount));
+            setUserDiscount(Math.round(userdiscount));
             setProductQuantity(productquantity);
-            setTotalPrice(productprice - productdiscount);
+            setTotalPrice(productprice - productdiscount - groupdiscount - userdiscount);
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
          });
    };
 
-   const getDiscount = (price, discount, discount_type) => {
-      let output = null;
-      if (discount_type === "rp") {
-         output = price - discount;
-      } else {
-         output = price - (price * discount) / 100;
-      }
-      return output;
-   };
-
-   const getPercent = (price, discount, discount_type) => {
-      let output = null;
-      if (discount_type === "rp") {
-         output = Math.round((discount / price) * 100);
-      } else {
-         output = discount;
-      }
-      return output;
-   };
-
-   React.useEffect(() => {
+   useEffect(() => {
       getData();
       window.scrollTo(0, 0);
       // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -123,13 +129,13 @@ export default function Cart(props) {
                });
             })
             .catch((err) => {
-               console.log(err.response);
+               // console.log(err.response);
             });
       }
    };
 
-   const [snackbar, setSnackbar] = React.useState(false);
-   const [message, setMessage] = React.useState();
+   const [snackbar, setSnackbar] = useState(false);
+   const [message, setMessage] = useState();
    const handleDelete = async (product_id, quantity) => {
       await axios
          .delete(`${apiUrl}/carts/delete/${product_id}`, {
@@ -150,7 +156,7 @@ export default function Cart(props) {
             setMessage("1 barang telah dihapus");
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
          });
    };
 
@@ -204,13 +210,16 @@ export default function Cart(props) {
                                     )}
                                     <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
                                        {value.product_combination.product.discount !== null && (
-                                          <React.Fragment>
+                                          <Fragment>
                                              <Box sx={{ display: "inline", background: "#ffeaef", borderRadius: 0.5, px: 0.5, pb: 0.4, mr: 1 }}>
                                                 <Typography variant="caption" color="#ff5c84" fontWeight="bold">
-                                                   {getPercent(
+                                                   {Calculate(
+                                                      "percent",
                                                       value.product_combination.price,
                                                       value.product_combination.product.discount,
-                                                      value.product_combination.product.discount_type
+                                                      value.product_combination.product.discount_type,
+                                                      value.product_combination.product.discount_group,
+                                                      value.product_combination.product.discount_user
                                                    )}
                                                    %
                                                 </Typography>
@@ -218,15 +227,18 @@ export default function Cart(props) {
                                              <Typography variant="caption" color="text.secondary" mr={1}>
                                                 <del>{NumberFormat(value.product_combination.price)}</del>
                                              </Typography>
-                                          </React.Fragment>
+                                          </Fragment>
                                        )}
                                        <Typography variant="subtitle2" component="div" fontWeight="bold">
                                           {value.product_combination.product.discount !== null
                                              ? NumberFormat(
-                                                  getDiscount(
+                                                  Calculate(
+                                                     "discount_balance",
                                                      value.product_combination.price,
                                                      value.product_combination.product.discount,
-                                                     value.product_combination.product.discount_type
+                                                     value.product_combination.product.discount_type,
+                                                     value.product_combination.product.discount_group,
+                                                     value.product_combination.product.discount_user
                                                   )
                                                )
                                              : NumberFormat(value.product_combination.price)}
@@ -281,6 +293,18 @@ export default function Cart(props) {
                               <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5 }}>
                                  <Typography>Total Diskon Barang</Typography>
                                  <Typography>-{NumberFormat(productDiscount)}</Typography>
+                              </Box>
+                           )}
+                           {groupDiscount !== 0 && (
+                              <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5 }}>
+                                 <Typography sx={{ textTransform: "capitalize" }}>Total Diskon {auth.user.role}</Typography>
+                                 <Typography>-{NumberFormat(groupDiscount)}</Typography>
+                              </Box>
+                           )}
+                           {userDiscount !== 0 && (
+                              <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5 }}>
+                                 <Typography>Total Diskon Pelanggan</Typography>
+                                 <Typography>-{NumberFormat(userDiscount)}</Typography>
                               </Box>
                            )}
                            <Divider sx={{ pt: 2 }} />

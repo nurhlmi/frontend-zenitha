@@ -1,10 +1,4 @@
-import React from "react";
-import axios from "axios";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import "../../style/Slider.css";
-
+import React, { Fragment, useEffect, useState } from "react";
 import {
    Container,
    Grid,
@@ -24,6 +18,12 @@ import {
 import { FavoriteRounded, FavoriteBorderRounded, Add, Remove, Close } from "@mui/icons-material";
 import { LoadingButton } from "@mui/lab";
 
+import axios from "axios";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import "../../style/Slider.css";
+
 import { Link as RouterLink } from "react-router-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
@@ -32,6 +32,7 @@ import { carts } from "../../store/Carts";
 import { apiUrl, title } from "../../variable/Url";
 import { NumberFormat } from "../../components/Format";
 import { YoutubeParser } from "../../components/YoutubeParser";
+import { Calculate } from "../../components/Calculate";
 
 export default function ProductDetail(props) {
    const { slug } = useParams();
@@ -40,24 +41,31 @@ export default function ProductDetail(props) {
    const [auth] = useRecoilState(authentication);
    const [cart, setCart] = useRecoilState(carts);
 
-   const [data, setData] = React.useState();
-   const [product, setProduct] = React.useState();
-   const [quantity, setQuantity] = React.useState(0);
-   const [snackbar, setSnackbar] = React.useState(false);
-   const [disabled, setDisabled] = React.useState(false);
-   const [error, setError] = React.useState(false);
-   const [message, setMessage] = React.useState();
-
+   const [data, setData] = useState();
+   const [product, setProduct] = useState();
+   const [quantity, setQuantity] = useState(0);
+   const [snackbar, setSnackbar] = useState(false);
+   const [disabled, setDisabled] = useState(false);
+   const [error, setError] = useState(false);
+   const [message, setMessage] = useState();
+   let params;
+   if (auth.auth === true) {
+      params = {
+         user_id: auth.user.id,
+      };
+   }
    const getProductCombinationSlug = async () => {
       await axios
-         .get(`${apiUrl}/product/product_combination_by_slug/${slug}`)
+         .get(`${apiUrl}/product/product_combination_by_slug/${slug}`, {
+            params: params,
+         })
          .then((res) => {
             // console.log(res.data.data);
             let value = res.data.data;
             setData(value);
             setProduct(value.product);
             setQuantity(value.product.minimum_order);
-            auth.auth !== false && getWishlist(auth.user.id, value.product.id);
+            auth.auth === true && getWishlist(auth.user.id, value.product.id);
             document.title = `${value.product.product_name}${title}`;
          })
          .catch((xhr) => {
@@ -70,6 +78,7 @@ export default function ProductDetail(props) {
       await axios
          .get(`${apiUrl}/product/product_combination`, {
             params: {
+               ...params,
                product_id: product?.id,
                combination_string: combination_string,
             },
@@ -97,27 +106,7 @@ export default function ProductDetail(props) {
          });
    };
 
-   const getDiscount = (price, discount, discount_type) => {
-      let output = null;
-      if (discount_type === "rp") {
-         output = price - discount;
-      } else {
-         output = price - (price * discount) / 100;
-      }
-      return output;
-   };
-
-   const getPercent = (price, discount, discount_type) => {
-      let output = null;
-      if (discount_type === "rp") {
-         output = Math.round((discount / price) * 100);
-      } else {
-         output = discount;
-      }
-      return output;
-   };
-
-   const [wishlist, setWishlist] = React.useState();
+   const [wishlist, setWishlist] = useState();
    const getWishlist = async (user_id, product_id) => {
       await axios
          .get(`${apiUrl}/user_wishlist/show`, {
@@ -167,7 +156,7 @@ export default function ProductDetail(props) {
       }
    };
 
-   const [variant, setVariant] = React.useState();
+   const [variant, setVariant] = useState();
    const handleChange = (e) => {
       setVariant({
          ...variant,
@@ -237,7 +226,7 @@ export default function ProductDetail(props) {
       }
    };
 
-   React.useEffect(() => {
+   useEffect(() => {
       if (quantity < 1) {
          window.scrollTo(0, 0);
          getProductCombinationSlug();
@@ -309,7 +298,16 @@ export default function ProductDetail(props) {
                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <Typography variant="h5" component="div" fontWeight="bold">
                            {product.discount !== null
-                              ? NumberFormat(getDiscount(data.price, product.discount, product.discount_type))
+                              ? NumberFormat(
+                                   Calculate(
+                                      "discount_balance",
+                                      data.price,
+                                      product.discount,
+                                      product.discount_type,
+                                      product.discount_group,
+                                      product.discount_user
+                                   )
+                                )
                               : NumberFormat(data.price)}
                         </Typography>
                         <Tooltip title={wishlist === true ? "Hapus dari Wishlist" : "Tambah ke Wishlist"}>
@@ -319,16 +317,16 @@ export default function ProductDetail(props) {
                         </Tooltip>
                      </Box>
                      {product.discount !== null && (
-                        <React.Fragment>
+                        <Fragment>
                            <Box sx={{ display: "inline", background: "#ffeaef", borderRadius: 0.5, px: 0.5, pb: 0.4, mr: 1 }}>
                               <Typography variant="caption" color="#ff5c84" fontWeight="bold">
-                                 {getPercent(data.price, product.discount, product.discount_type)}%
+                                 {Calculate("percent", data.price, product.discount, product.discount_type, product.discount_group, product.discount_user)}%
                               </Typography>
                            </Box>
                            <Typography variant="caption" color="text.secondary">
                               <del>{NumberFormat(data.price)}</del>
                            </Typography>
-                        </React.Fragment>
+                        </Fragment>
                      )}
                      <Typography variant="subtitle1" sx={{ display: { xs: "block", sm: "none" } }} mt={1}>
                         {product.product_name}

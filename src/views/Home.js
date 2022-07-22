@@ -1,24 +1,28 @@
-import React from "react";
-import axios from "axios";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import "../style/Slider.css";
-
-import { ProductCard } from "../components/Card";
-
-import { Box, Container, Link, Typography, Button, Grid, CircularProgress } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
-import { apiUrl } from "../variable/Url";
+import React, { Fragment, useEffect, useState } from "react";
+import { Box, Button, CircularProgress, Container, Grid, Link, Typography } from "@mui/material";
 import { LocalMallOutlined } from "@mui/icons-material";
 
-export default function Home(props) {
+import axios from "axios";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick-theme.css";
+import "slick-carousel/slick/slick.css";
+import "../style/Slider.css";
+
+import { apiUrl } from "../variable/Url";
+import { Link as RouterLink } from "react-router-dom";
+import { ProductCard } from "../components/Card";
+import { useRecoilState } from "recoil";
+import { authentication } from "../store/Authentication";
+
+export default function Home() {
    const token = localStorage.getItem("token");
-   const [banner, setBanner] = React.useState([]);
-   const [product, setProduct] = React.useState();
-   const [productHighlight, setProductHighlight] = React.useState();
-   const [secondBanner, setSecondBanner] = React.useState([]);
-   const [footerBanner, setFooterBanner] = React.useState();
+   const [auth] = useRecoilState(authentication);
+
+   const [banner, setBanner] = useState([]);
+   const [product, setProduct] = useState();
+   const [productHighlight, setProductHighlight] = useState();
+   const [secondBanner, setSecondBanner] = useState([]);
+   const [footerBanner, setFooterBanner] = useState();
 
    const getBanner = async () => {
       await axios
@@ -28,7 +32,7 @@ export default function Home(props) {
             setBanner(res.data.data);
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
          });
    };
    const getProductHighlight = async () => {
@@ -43,18 +47,26 @@ export default function Home(props) {
             setProductHighlight(res.data);
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
          });
    };
+   let params;
+   if (auth.auth === true) {
+      params = {
+         user_id: auth.user.id,
+      };
+   }
    const getProduct = async () => {
       await axios
-         .get(`${apiUrl}/product/fetch`)
+         .get(`${apiUrl}/product/fetch`, {
+            params: params,
+         })
          .then((res) => {
             // console.log(res.data.data);
             setProduct(res.data.data);
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
          });
    };
    const getSecondBanner = async () => {
@@ -65,7 +77,7 @@ export default function Home(props) {
             setSecondBanner(res.data.data);
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
          });
    };
    const getFooterBanner = async () => {
@@ -76,7 +88,7 @@ export default function Home(props) {
             setFooterBanner(res.data.data);
          })
          .catch((err) => {
-            console.log(err.response);
+            // console.log(err.response);
          });
    };
 
@@ -98,7 +110,7 @@ export default function Home(props) {
       ],
    };
 
-   React.useEffect(() => {
+   useEffect(() => {
       getBanner();
       getProductHighlight();
       getProduct();
@@ -109,7 +121,7 @@ export default function Home(props) {
    }, []);
 
    return (
-      <React.Fragment>
+      <Fragment>
          <Box sx={{ mb: 4 }}>
             <Slider {...settingBanner}>
                {banner.map((value, index) => (
@@ -138,6 +150,8 @@ export default function Home(props) {
                               price={value.product.price}
                               discount={value.product.discount}
                               discount_type={value.product.discount_type}
+                              discount_group={value.product.discount_group}
+                              discount_user={value.product.discount_user}
                            />
                         </Grid>
                      ))}
@@ -149,9 +163,9 @@ export default function Home(props) {
                   Produk Terbaru
                </Typography>
                {product !== undefined ? (
-                  <React.Fragment>
+                  <Fragment>
                      {product.data.length > 0 ? (
-                        <React.Fragment>
+                        <Fragment>
                            <Grid container spacing={{ xs: 1, sm: 2 }}>
                               {product.data.map((value, index) => (
                                  <Grid item xs={6} sm={4} md={3} lg={2.4} key={index}>
@@ -162,6 +176,8 @@ export default function Home(props) {
                                        price={value.price}
                                        discount={value.discount}
                                        discount_type={value.discount_type}
+                                       discount_group={value.discount_group}
+                                       discount_user={value.discount_user}
                                     />
                                  </Grid>
                               ))}
@@ -173,7 +189,7 @@ export default function Home(props) {
                                  </Button>
                               </Box>
                            )}
-                        </React.Fragment>
+                        </Fragment>
                      ) : (
                         <Box
                            sx={{
@@ -189,7 +205,7 @@ export default function Home(props) {
                            <Typography mt={1}>Belum ada produk terbaru</Typography>
                         </Box>
                      )}
-                  </React.Fragment>
+                  </Fragment>
                ) : (
                   <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>
                      <CircularProgress />
@@ -224,6 +240,6 @@ export default function Home(props) {
                </Grid>
             </Container>
          )}
-      </React.Fragment>
+      </Fragment>
    );
 }
