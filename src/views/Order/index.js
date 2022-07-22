@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
    Container,
@@ -17,6 +17,7 @@ import {
    DialogContent,
    Link,
    Chip,
+   Badge,
 } from "@mui/material";
 import { AccessTimeRounded, CloseRounded, FilterList, ListAltRounded, Search } from "@mui/icons-material";
 
@@ -31,11 +32,12 @@ export default function Order(props) {
    const token = localStorage.getItem("token");
    const [auth] = useRecoilState(authentication);
 
-   const [data, setData] = React.useState();
-   const [params, setParams] = React.useState({
+   const [data, setData] = useState();
+   const [params, setParams] = useState({
       user_id: auth.user.id,
       limit_page: 1,
       search: "",
+      except_pending_status: 1,
    });
    const getData = async () => {
       await axios
@@ -50,17 +52,39 @@ export default function Order(props) {
             setData(res.data.data);
          })
          .catch((xhr) => {
-            console.log(xhr.response);
+            // console.log(xhr.response);
          });
    };
 
-   React.useEffect(() => {
+   const [totalPayment, setTotalPayment] = useState();
+   const getTotalPayment = async () => {
+      await axios
+         .get(`${apiUrl}/transaction/payment/total`, {
+            params: {
+               user_id: auth.user.id,
+               status: "process",
+            },
+            headers: {
+               Authorization: "Bearer " + token,
+            },
+         })
+         .then((res) => {
+            // console.log(res.data.data);
+            setTotalPayment(res.data.data);
+         })
+         .catch((xhr) => {
+            // console.log(xhr.response);
+         });
+   };
+
+   useEffect(() => {
       getData();
+      getTotalPayment();
       window.scrollTo(0, 0);
       // eslint-disable-next-line react-hooks/exhaustive-deps
    }, []);
 
-   const [dialog, setDialog] = React.useState(false);
+   const [dialog, setDialog] = useState(false);
    const handleDialog = () => {
       setDialog(!dialog);
    };
@@ -106,16 +130,18 @@ export default function Order(props) {
                      </Button>
                   </Grid>
                   <Grid item xs={12} md={4.5} lg={3}>
-                     <Button
-                        variant="outlined"
-                        startIcon={<AccessTimeRounded />}
-                        sx={{ borderColor: "rgba(0, 0, 0, 0.23)" }}
-                        component={RouterLink}
-                        to="/payment"
-                        fullWidth
-                     >
-                        Menunggu Pembayaran
-                     </Button>
+                     <Badge badgeContent={totalPayment} color="error" fullWidth>
+                        <Button
+                           variant="outlined"
+                           startIcon={<AccessTimeRounded />}
+                           sx={{ borderColor: "rgba(0, 0, 0, 0.23)" }}
+                           component={RouterLink}
+                           to="/payment"
+                           fullWidth
+                        >
+                           Menunggu Pembayaran
+                        </Button>
+                     </Badge>
                   </Grid>
                </Grid>
                {data !== undefined ? (
