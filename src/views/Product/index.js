@@ -55,6 +55,8 @@ export default function Products(props) {
                               price={value.price}
                               discount={value.discount}
                               discount_type={value.discount_type}
+                              discount_group={value.discount_group}
+                              discount_user={value.discount_user}
                            />
                         </Grid>
                      ))}
