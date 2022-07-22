@@ -217,7 +217,15 @@ export default function Cart(props) {
                                        </Typography>
                                     )}
                                     <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
-                                       {value.product_combination.product.discount !== null && (
+                                       {value.product_combination.product.price !==
+                                          Calculate(
+                                             "discount_balance",
+                                             value.product_combination.price,
+                                             value.product_combination.product.discount,
+                                             value.product_combination.product.discount_type,
+                                             value.product_combination.product.discount_group,
+                                             value.product_combination.product.discount_user
+                                          ) && (
                                           <Fragment>
                                              <Box sx={{ display: "inline", background: "#ffeaef", borderRadius: 0.5, px: 0.5, pb: 0.4, mr: 1 }}>
                                                 <Typography variant="caption" color="#ff5c84" fontWeight="bold">
@@ -238,7 +246,15 @@ export default function Cart(props) {
                                           </Fragment>
                                        )}
                                        <Typography variant="subtitle2" component="div" fontWeight="bold">
-                                          {value.product_combination.product.discount !== null
+                                          {value.product_combination.product.price !==
+                                          Calculate(
+                                             "discount_balance",
+                                             value.product_combination.price,
+                                             value.product_combination.product.discount,
+                                             value.product_combination.product.discount_type,
+                                             value.product_combination.product.discount_group,
+                                             value.product_combination.product.discount_user
+                                          )
                                              ? NumberFormat(
                                                   Calculate(
                                                      "discount_balance",

@@ -297,7 +297,8 @@ export default function ProductDetail(props) {
                      </Typography>
                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <Typography variant="h5" component="div" fontWeight="bold">
-                           {product.discount !== null
+                           {data.price !==
+                           Calculate("discount_balance", data.price, product.discount, product.discount_type, product.discount_group, product.discount_user)
                               ? NumberFormat(
                                    Calculate(
                                       "discount_balance",
@@ -316,7 +317,8 @@ export default function ProductDetail(props) {
                            </IconButton>
                         </Tooltip>
                      </Box>
-                     {product.discount !== null && (
+                     {data.price !==
+                        Calculate("discount_balance", data.price, product.discount, product.discount_type, product.discount_group, product.discount_user) && (
                         <Fragment>
                            <Box sx={{ display: "inline", background: "#ffeaef", borderRadius: 0.5, px: 0.5, pb: 0.4, mr: 1 }}>
                               <Typography variant="caption" color="#ff5c84" fontWeight="bold">
