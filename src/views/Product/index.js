@@ -5,14 +5,25 @@ import { LocalMallOutlined } from "@mui/icons-material";
 import axios from "axios";
 import { apiUrl } from "../../variable/Url";
 import { ProductCard } from "../../components/Card";
+import { useRecoilState } from "recoil";
+import { authentication } from "../../store/Authentication";
 
 export default function Products(props) {
+   const [auth] = useRecoilState(authentication);
+
    const [page, setPage] = useState(1);
    const [data, setData] = useState();
+   let params;
+   if (auth.auth === true) {
+      params = {
+         user_id: auth.user.id,
+      };
+   }
    const getData = async () => {
       await axios
          .get(`${apiUrl}/product/fetch`, {
             params: {
+               ...params,
                page: page,
                limit: 10,
             },

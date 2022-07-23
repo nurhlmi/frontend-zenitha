@@ -180,6 +180,9 @@ export default function Checkout(props) {
    const getCart = async (address, groupDiscount, customerDiscount) => {
       await axios
          .get(`${apiUrl}/carts`, {
+            params: {
+               user_id: auth.user.id,
+            },
             headers: {
                Authorization: "Bearer " + token,
             },
@@ -219,15 +222,14 @@ export default function Checkout(props) {
                let productsubtotal = 0;
 
                // eslint-disable-next-line array-callback-return
-               res.data.data.map((value, index) => {
+               res.data.data.map((value) => {
                   if (value.product_combination.product.preorder === 0) {
                      newdata[0].data.push(value);
                   }
                });
                // eslint-disable-next-line array-callback-return
-               res.data.data.map((value, index) => {
+               res.data.data.map((value) => {
                   if (value.product_combination.product.preorder === 1) {
-                     // colors.splice(index, 0, "white");
                      newdata.push({
                         data: [value],
                         subtotal: 0,
@@ -295,11 +297,11 @@ export default function Checkout(props) {
                                           if (rows.category.id === value.product_combination.product.category.id) {
                                              value.product_combination.discount_customer =
                                                 value.product_combination.discount_group_balance -
-                                                Discount(value.product_combination.discount_group_balance, row.discount, row.discount_type);
+                                                Discount(value.product_combination.discount_group_balance, rows.discount, rows.discount_type);
                                              value.product_combination.discount_customer_balance = Discount(
                                                 value.product_combination.discount_group_balance,
-                                                row.discount,
-                                                row.discount_type
+                                                rows.discount,
+                                                rows.discount_type
                                              );
                                           }
                                        }
@@ -331,7 +333,7 @@ export default function Checkout(props) {
                            value.product_combination.discount_group -
                            value.product_combination.discount_customer;
                         if (value.product_combination.product.preorder === 1) {
-                           value.product_combination.discount_po = Discount(value.product_combination.subtotal, 10, "percent");
+                           value.product_combination.discount_po = Math.round(Discount(value.product_combination.subtotal, 10, "percent"));
                            value.product_combination.discount_po_balance = value.product_combination.subtotal - value.product_combination.discount_po;
                            value.product_combination.subtotal = value.product_combination.discount_po_balance;
                         }

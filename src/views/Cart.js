@@ -24,7 +24,7 @@ import { Link as RouterLink } from "react-router-dom";
 
 import { apiUrl } from "../variable/Url";
 import { NumberFormat } from "../components/Format";
-import { Calculate } from "../components/Calculate";
+import { Discount } from "../components/Discount";
 import { useRecoilState } from "recoil";
 import { authentication } from "../store/Authentication";
 import { carts } from "../store/Carts";
@@ -51,43 +51,53 @@ export default function Cart(props) {
             },
          })
          .then((res) => {
-            // console.log(res.data.data);
+            console.log(res.data.data);
             setData(res.data.data);
             let productprice = 0;
             let productdiscount = 0;
             let groupdiscount = 0;
             let userdiscount = 0;
             let productquantity = 0;
+            let balance = 0;
             // eslint-disable-next-line array-callback-return
             res.data.data.map((value) => {
                if (value.product_combination.status === "active") {
                   productprice += value.quantity * value.product_combination.price;
+                  balance = value.quantity * value.product_combination.price;
                   if (value.product_combination.product.discount !== null) {
                      if (value.product_combination.product.discount_type === "rp") {
                         productdiscount += value.quantity * value.product_combination.product.discount;
+                        balance = balance - productdiscount;
                      } else {
-                        productdiscount += value.quantity * (value.product_combination.price * (value.product_combination.product.discount / 100));
+                        productdiscount += (balance * value.product_combination.product.discount) / 100;
+                        balance = balance - productdiscount;
                      }
                   }
                   if (value.product_combination.product.discount_group !== null) {
                      if (value.product_combination.product.discount_group.discount_type === "rp") {
-                        groupdiscount += value.product_combination.product.discount_group.discount;
+                        groupdiscount += value.quantity * value.product_combination.product.discount_group.discount;
+                        balance = balance - groupdiscount;
                      } else {
-                        groupdiscount += value.product_combination.price * (value.product_combination.product.discount_group.discount / 100);
+                        groupdiscount += (balance * value.product_combination.product.discount_group.discount) / 100;
+                        balance = balance - groupdiscount;
                      }
                      if (value.product_combination.product.discount_user !== null) {
                         if (value.product_combination.product.discount_user.discount_type === "rp") {
-                           userdiscount += value.product_combination.product.discount_user.discount;
+                           userdiscount += value.quantity * value.product_combination.product.discount_user.discount;
+                           balance = balance - userdiscount;
                         } else {
-                           userdiscount += value.product_combination.price * (value.product_combination.product.discount_user.discount / 100);
+                           userdiscount += (balance * value.product_combination.product.discount_user.discount) / 100;
+                           balance = balance - userdiscount;
                         }
                      }
                   } else {
                      if (value.product_combination.product.discount_user !== null) {
                         if (value.product_combination.product.discount_user.discount_type === "rp") {
-                           userdiscount += value.product_combination.product.discount_user.discount;
+                           userdiscount += value.quantity * value.product_combination.product.discount_user.discount;
+                           balance = balance - userdiscount;
                         } else {
-                           userdiscount += value.product_combination.price * (value.product_combination.product.discount_user.discount / 100);
+                           userdiscount += (balance * value.product_combination.product.discount_user.discount) / 100;
+                           balance = balance - userdiscount;
                         }
                      }
                   }
@@ -217,9 +227,9 @@ export default function Cart(props) {
                                        </Typography>
                                     )}
                                     <Box sx={{ display: "flex", alignItems: "center", mt: 0.5 }}>
-                                       {value.product_combination.product.price !==
-                                          Calculate(
-                                             "discount_balance",
+                                       {value.product_combination.price !==
+                                          Discount(
+                                             "balance",
                                              value.product_combination.price,
                                              value.product_combination.product.discount,
                                              value.product_combination.product.discount_type,
@@ -229,7 +239,7 @@ export default function Cart(props) {
                                           <Fragment>
                                              <Box sx={{ display: "inline", background: "#ffeaef", borderRadius: 0.5, px: 0.5, pb: 0.4, mr: 1 }}>
                                                 <Typography variant="caption" color="#ff5c84" fontWeight="bold">
-                                                   {Calculate(
+                                                   {Discount(
                                                       "percent",
                                                       value.product_combination.price,
                                                       value.product_combination.product.discount,
@@ -246,9 +256,9 @@ export default function Cart(props) {
                                           </Fragment>
                                        )}
                                        <Typography variant="subtitle2" component="div" fontWeight="bold">
-                                          {value.product_combination.product.price !==
-                                          Calculate(
-                                             "discount_balance",
+                                          {value.product_combination.price !==
+                                          Discount(
+                                             "balance",
                                              value.product_combination.price,
                                              value.product_combination.product.discount,
                                              value.product_combination.product.discount_type,
@@ -256,8 +266,8 @@ export default function Cart(props) {
                                              value.product_combination.product.discount_user
                                           )
                                              ? NumberFormat(
-                                                  Calculate(
-                                                     "discount_balance",
+                                                  Discount(
+                                                     "balance",
                                                      value.product_combination.price,
                                                      value.product_combination.product.discount,
                                                      value.product_combination.product.discount_type,
