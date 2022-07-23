@@ -31,6 +31,7 @@ import {
    LockOutlined,
    StorefrontOutlined,
    ShoppingBagOutlined,
+   ArticleOutlined,
 } from "@mui/icons-material";
 
 import axios from "axios";
@@ -351,6 +352,12 @@ export default function Header(props) {
                                                 <ShoppingBagOutlined fontSize="small" />
                                              </ListItemIcon>
                                              Kategori
+                                          </MenuItem>
+                                          <MenuItem component={RouterLink} to="/article-tutorial">
+                                             <ListItemIcon sx={{ mr: 0 }}>
+                                                <ArticleOutlined fontSize="small" />
+                                             </ListItemIcon>
+                                             Artikel & Tutorial
                                           </MenuItem>
                                           <Divider />
                                        </Box>
