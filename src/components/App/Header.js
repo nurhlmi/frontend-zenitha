@@ -243,7 +243,7 @@ export default function Header(props) {
                                  sx={{ ml: 1, flex: 1, fontSize: "13px" }}
                                  value={input}
                                  onChange={handleChange}
-                                 placeholder="Cari busana"
+                                 placeholder="Cari produk"
                                  inputProps={{ "aria-label": "cari" }}
                                  type="search"
                               />
